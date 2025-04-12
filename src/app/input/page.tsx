@@ -4,8 +4,30 @@ import PageTitle from "@/components/PageTitle";
 import { IoWallet } from "react-icons/io5";
 import { IoAddCircle } from "react-icons/io5";
 import TransactionList from "@/components/transaction/TransactionList";
+import { FaArrowUp } from "react-icons/fa";
+import { useState, useEffect } from "react";
 
 export default function InputPage() {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // 스크롤 이벤트 핸들링
+  useEffect(() => {
+    const handleScroll = () => {
+      // 100px 이상 스크롤되면 버튼 표시
+      setShowScrollTop(window.scrollY > 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
   return (
     <div className="flex flex-col gap-10 p-8">
       <PageTitle
@@ -40,6 +62,17 @@ export default function InputPage() {
         </div>
         <TransactionList />
       </section>
+
+      {/* 위로가기 버튼 */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 ease-in-out"
+          aria-label="위로 가기"
+        >
+          <FaArrowUp className="h-5 w-5" />
+        </button>
+      )}
     </div>
   );
 } 

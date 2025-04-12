@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { MdEdit, MdDelete, MdArrowUpward, MdArrowDownward, MdExpandMore, MdExpandLess } from "react-icons/md";
+import toast from "react-hot-toast";
 import { useCategoryStore } from "@/store/categoryStore";
 import { groupCategories } from "@/utils/categoryUtils";
 
@@ -46,7 +47,33 @@ export default function CategoryList({ type }: CategoryListProps) {
       (cat) => cat.유형 === type && cat.관 === 관 && cat.항 === 항 && cat.목 === 목
     );
     if (category && confirm('이 카테고리를 삭제하시겠습니까?')) {
-      deleteCategory(category);
+      try {
+        deleteCategory(category);
+        toast.success('카테고리가 삭제되었습니다.');
+      } catch (error) {
+        console.error('카테고리 삭제 실패:', error);
+        toast.error('카테고리 삭제에 실패했습니다.');
+      }
+    }
+  };
+
+  const handleMoveUp = (관: string) => {
+    try {
+      moveCategoryUp(관, type);
+      toast.success('카테고리가 위로 이동되었습니다.');
+    } catch (error) {
+      console.error('카테고리 이동 실패:', error);
+      toast.error('카테고리 이동에 실패했습니다.');
+    }
+  };
+
+  const handleMoveDown = (관: string) => {
+    try {
+      moveCategoryDown(관, type);
+      toast.success('카테고리가 아래로 이동되었습니다.');
+    } catch (error) {
+      console.error('카테고리 이동 실패:', error);
+      toast.error('카테고리 이동에 실패했습니다.');
     }
   };
 
@@ -102,14 +129,14 @@ export default function CategoryList({ type }: CategoryListProps) {
             </button>
             <div className="flex gap-2">
               <button
-                onClick={() => moveCategoryUp(관, type)}
+                onClick={() => handleMoveUp(관)}
                 className="text-gray-400 hover:text-white transition-colors"
                 title="위로 이동"
               >
                 <MdArrowUpward className="h-5 w-5" />
               </button>
               <button
-                onClick={() => moveCategoryDown(관, type)}
+                onClick={() => handleMoveDown(관)}
                 className="text-gray-400 hover:text-white transition-colors"
                 title="아래로 이동"
               >

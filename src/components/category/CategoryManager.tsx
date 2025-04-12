@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { MdAdd, MdCategory } from "react-icons/md";
 import { FaFileExport, FaFileImport } from "react-icons/fa";
+import toast from "react-hot-toast";
 import CategoryList from "./CategoryList";
 import CategoryEditModal from "./CategoryEditModal";
 import { useCategoryStore } from "@/store/categoryStore";
@@ -37,6 +38,7 @@ export default function CategoryManager() {
         setCategories(initialCategories);
       } catch (error) {
         console.error('카테고리 초기화 실패:', error);
+        toast.error('카테고리를 불러오는데 실패했습니다.');
       } finally {
         setIsLoading(false);
       }
@@ -52,19 +54,30 @@ export default function CategoryManager() {
   };
 
   const handleExport = () => {
-    exportCategories(categories);
+    try {
+      exportCategories(categories);
+      toast.success('카테고리를 내보냈습니다.');
+    } catch (error) {
+      console.error('카테고리 내보내기 실패:', error);
+      toast.error('카테고리 내보내기에 실패했습니다.');
+    }
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    const loadingToast = toast.loading('카테고리를 가져오는 중...');
     try {
       const importedCategories = await importCategories(file);
       setCategories(importedCategories);
+      toast.success('카테고리를 가져왔습니다.', { id: loadingToast });
     } catch (error) {
       console.error('카테고리 가져오기 실패:', error);
-      alert(error instanceof Error ? error.message : '파일을 가져오는 중 오류가 발생했습니다.');
+      toast.error(
+        error instanceof Error ? error.message : '파일을 가져오는 중 오류가 발생했습니다.',
+        { id: loadingToast }
+      );
     }
     // 파일 입력 초기화
     event.target.value = '';

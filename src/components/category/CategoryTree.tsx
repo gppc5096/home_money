@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MdExpandMore, MdChevronRight, MdEdit, MdDelete } from "react-icons/md";
+import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import type { Category } from "./CategoryManager";
 import { useCategoryStore } from "@/store/categoryStore";
 import { groupCategories } from "@/utils/categoryUtils";
@@ -18,7 +19,7 @@ export default function CategoryTree({
   onEditClick,
 }: CategoryTreeProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-  const { deleteCategory } = useCategoryStore();
+  const { deleteCategory, moveCategoryUp, moveCategoryDown } = useCategoryStore();
 
   const groupedCategories = groupCategories(categories, selectedType);
 
@@ -51,6 +52,24 @@ export default function CategoryTree({
             )}
             <span className="font-medium">{관}</span>
             <div className="ml-auto flex gap-2">
+              <button
+                className="p-1 text-emerald-500 hover:text-emerald-300"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  moveCategoryUp(관, selectedType);
+                }}
+              >
+                <FaArrowUp className="h-4 w-4" />
+              </button>
+              <button
+                className="p-1 text-emerald-500 hover:text-emerald-300"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  moveCategoryDown(관, selectedType);
+                }}
+              >
+                <FaArrowDown className="h-4 w-4" />
+              </button>
               <button
                 className="p-1 hover:text-purple-300"
                 onClick={(e) => {

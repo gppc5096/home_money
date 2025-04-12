@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MdCategory } from "react-icons/md";
 import CategoryControls from "./CategoryControls";
 import CategoryTree from "./CategoryTree";
@@ -27,14 +27,37 @@ export default function CategoryManager() {
     setEditingCategory,
   } = useCategoryStore();
 
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const initializeCategories = async () => {
-      const loadedCategories = await loadCategories();
-      setCategories(loadedCategories);
+      try {
+        setIsLoading(true);
+        const loadedCategories = await loadCategories();
+        setCategories(loadedCategories);
+      } catch (error) {
+        console.error('카테고리 초기화 에러:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     initializeCategories();
   }, [setCategories]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className="mb-6 flex items-center gap-3">
+          <MdCategory className="h-6 w-6 text-purple-200" />
+          <h2 className="text-xl font-semibold text-white">카테고리 관리</h2>
+        </div>
+        <div className="bg-gray-800 rounded-lg p-4">
+          <p className="text-gray-400">카테고리를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8">

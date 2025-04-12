@@ -1,16 +1,34 @@
 import type { Category } from '@/components/category/CategoryManager';
 
+// 기본 카테고리 데이터
+const DEFAULT_CATEGORIES: Category[] = [
+  // 수입 카테고리
+  { 유형: "수입", 관: "급여", 항: "정기급여", 목: "월급" },
+  { 유형: "수입", 관: "급여", 항: "정기급여", 목: "상여금" },
+  { 유형: "수입", 관: "금융소득", 항: "이자수입", 목: "예금이자" },
+  { 유형: "수입", 관: "금융소득", 항: "배당수입", 목: "주식배당" },
+  
+  // 지출 카테고리
+  { 유형: "지출", 관: "식비", 항: "식사비", 목: "주식" },
+  { 유형: "지출", 관: "식비", 항: "식사비", 목: "부식" },
+  { 유형: "지출", 관: "주거비", 항: "공과금", 목: "전기세" },
+  { 유형: "지출", 관: "주거비", 항: "공과금", 목: "수도세" },
+  { 유형: "지출", 관: "교통비", 항: "대중교통", 목: "버스" },
+  { 유형: "지출", 관: "교통비", 항: "대중교통", 목: "지하철" }
+];
+
 export async function loadCategories(): Promise<Category[]> {
   try {
     const response = await fetch('/1-카테고리.json');
     if (!response.ok) {
-      throw new Error('카테고리 데이터를 불러오는데 실패했습니다.');
+      console.warn('카테고리 파일을 찾을 수 없습니다. 기본 카테고리를 사용합니다.');
+      return DEFAULT_CATEGORIES;
     }
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('카테고리 로드 에러:', error);
-    return [];
+    console.warn('카테고리 로드 에러:', error, '기본 카테고리를 사용합니다.');
+    return DEFAULT_CATEGORIES;
   }
 }
 

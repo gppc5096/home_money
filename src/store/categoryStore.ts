@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Category } from '@/components/category/CategoryManager';
+import { saveToStorage } from '@/utils/categoryUtils';
 
 interface CategoryState {
   categories: Category[];
@@ -17,35 +18,46 @@ interface CategoryState {
   setEditingCategory: (category: Category | null) => void;
 }
 
+// 카테고리 비교 함수
+const isSameCategory = (a: Category, b: Category) => 
+  a.유형 === b.유형 && 
+  a.관 === b.관 && 
+  a.항 === b.항 && 
+  a.목 === b.목;
+
 export const useCategoryStore = create<CategoryState>((set) => ({
   categories: [],
   selectedType: "수입",
   isModalOpen: false,
   editingCategory: null,
 
-  setCategories: (categories) => set({ categories }),
+  setCategories: (categories) => {
+    saveToStorage(categories);
+    set({ categories });
+  },
   
   addCategory: (category) =>
-    set((state) => ({
-      categories: [...state.categories, category],
-    })),
+    set((state) => {
+      const newCategories = [...state.categories, category];
+      saveToStorage(newCategories);
+      return { categories: newCategories };
+    }),
 
   updateCategory: (oldCategory, newCategory) =>
-    set((state) => ({
-      categories: state.categories.map((cat) =>
-        cat === oldCategory ? newCategory : cat
-      ),
-    })),
+    set((state) => {
+      const newCategories = state.categories.map((cat) =>
+        isSameCategory(cat, oldCategory) ? newCategory : cat
+      );
+      saveToStorage(newCategories);
+      return { categories: newCategories };
+    }),
 
   deleteCategory: (category) =>
-    set((state) => ({
-      categories: state.categories.filter((cat) => 
-        !(cat.유형 === category.유형 && 
-          cat.관 === category.관 && 
-          cat.항 === category.항 && 
-          cat.목 === category.목)
-      ),
-    })),
+    set((state) => {
+      const newCategories = state.categories.filter((cat) => !isSameCategory(cat, category));
+      saveToStorage(newCategories);
+      return { categories: newCategories };
+    }),
 
   moveCategoryUp: (관, type) =>
     set((state) => {
@@ -69,6 +81,7 @@ export const useCategoryStore = create<CategoryState>((set) => ({
         return cat;
       });
 
+      saveToStorage(updatedCategories);
       return { categories: updatedCategories };
     }),
 
@@ -94,6 +107,7 @@ export const useCategoryStore = create<CategoryState>((set) => ({
         return cat;
       });
 
+      saveToStorage(updatedCategories);
       return { categories: updatedCategories };
     }),
 

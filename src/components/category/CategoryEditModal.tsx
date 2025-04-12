@@ -26,8 +26,11 @@ export default function CategoryEditModal({
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
+    } else {
+      setFormData({ 유형: "수입" });
     }
-  }, [initialData]);
+    setError(null);
+  }, [initialData, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,13 +48,17 @@ export default function CategoryEditModal({
       return;
     }
 
-    if (initialData) {
-      updateCategory(initialData, category);
-    } else {
-      addCategory(category);
+    try {
+      if (initialData) {
+        updateCategory(initialData, category);
+      } else {
+        addCategory(category);
+      }
+      onClose();
+    } catch (error) {
+      setError('카테고리 저장 중 오류가 발생했습니다.');
+      console.error('카테고리 저장 오류:', error);
     }
-
-    onClose();
   };
 
   if (!isOpen) return null;

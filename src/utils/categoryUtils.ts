@@ -17,19 +17,41 @@ const DEFAULT_CATEGORIES: Category[] = [
   { 유형: "지출", 관: "교통비", 항: "대중교통", 목: "지하철" }
 ];
 
-export async function loadCategories(): Promise<Category[]> {
+// localStorage 키
+const STORAGE_KEY = 'house-holder-categories';
+
+// localStorage에서 카테고리 데이터 불러오기
+const loadFromStorage = (): Category[] => {
+  if (typeof window === 'undefined') return [];
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (!stored) return [];
   try {
-    const response = await fetch('/1-카테고리.json');
-    if (!response.ok) {
-      console.warn('카테고리 파일을 찾을 수 없습니다. 기본 카테고리를 사용합니다.');
-      return DEFAULT_CATEGORIES;
-    }
-    const data = await response.json();
-    return data;
+    return JSON.parse(stored);
   } catch (error) {
-    console.warn('카테고리 로드 에러:', error, '기본 카테고리를 사용합니다.');
-    return DEFAULT_CATEGORIES;
+    console.error('저장된 카테고리 데이터 파싱 실패:', error);
+    return [];
   }
+};
+
+// localStorage에 카테고리 데이터 저장
+export const saveToStorage = (categories: Category[]) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
+  } catch (error) {
+    console.error('카테고리 데이터 저장 실패:', error);
+  }
+};
+
+export async function loadCategories(): Promise<Category[]> {
+  // 1. localStorage에서 먼저 확인
+  const storedCategories = loadFromStorage();
+  if (storedCategories.length > 0) {
+    return storedCategories;
+  }
+
+  // 2. localStorage에 없으면 기본 데이터 사용
+  return DEFAULT_CATEGORIES;
 }
 
 export function validateCategory(category: Partial<Category>): string | null {

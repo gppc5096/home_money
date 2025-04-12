@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MdCategory } from "react-icons/md";
-import CategoryControls from "./CategoryControls";
-import CategoryTree from "./CategoryTree";
+import { useState, useEffect } from "react";
+import { MdAdd, MdCategory } from "react-icons/md";
+import { FaFileExport, FaFileImport } from "react-icons/fa";
+import CategoryList from "./CategoryList";
 import CategoryEditModal from "./CategoryEditModal";
 import { useCategoryStore } from "@/store/categoryStore";
-import { loadCategories } from "@/utils/categoryUtils";
+import { loadCategories, exportCategories, importCategories } from "@/utils/categoryUtils";
 
 export interface Category {
   유형: "수입" | "지출";
@@ -28,24 +28,50 @@ export default function CategoryManager() {
   } = useCategoryStore();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const initializeCategories = async () => {
       try {
-        setIsLoading(true);
-        const loadedCategories = await loadCategories();
-        setCategories(loadedCategories);
+        const initialCategories = await loadCategories();
+        setCategories(initialCategories);
       } catch (error) {
-        console.error('카테고리 초기화 에러:', error);
+        console.error('카테고리 초기화 실패:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     initializeCategories();
+    setMounted(true);
   }, [setCategories]);
 
-  if (isLoading) {
+  const handleAddClick = () => {
+    setEditingCategory(null);
+    setIsModalOpen(true);
+  };
+
+  const handleExport = () => {
+    exportCategories(categories);
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const importedCategories = await importCategories(file);
+      setCategories(importedCategories);
+    } catch (error) {
+      console.error('카테고리 가져오기 실패:', error);
+      alert(error instanceof Error ? error.message : '파일을 가져오는 중 오류가 발생했습니다.');
+    }
+    // 파일 입력 초기화
+    event.target.value = '';
+  };
+
+  // 초기 마운트 전에는 기본 구조만 렌더링
+  if (!mounted || isLoading) {
     return (
       <div className="flex flex-col gap-8">
         <div className="mb-6 flex items-center gap-3">
@@ -53,7 +79,9 @@ export default function CategoryManager() {
           <h2 className="text-xl font-semibold text-white">카테고리 관리</h2>
         </div>
         <div className="bg-gray-800 rounded-lg p-4">
-          <p className="text-gray-400">카테고리를 불러오는 중...</p>
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+          </div>
         </div>
       </div>
     );
@@ -66,32 +94,73 @@ export default function CategoryManager() {
         <h2 className="text-xl font-semibold text-white">카테고리 관리</h2>
       </div>
 
-      <CategoryControls
-        selectedType={selectedType}
-        onTypeChange={setSelectedType}
-        onAddClick={() => {
-          setEditingCategory(null);
-          setIsModalOpen(true);
-        }}
-      />
+      <section className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSelectedType("수입")}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                selectedType === "수입"
+                  ? "bg-purple-500 text-white"
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+            >
+              수입
+            </button>
+            <button
+              onClick={() => setSelectedType("지출")}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                selectedType === "지출"
+                  ? "bg-purple-500 text-white"
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+            >
+              지출
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="file"
+              onChange={handleImport}
+              className="hidden"
+              accept=".csv"
+              id="categoryFileInput"
+            />
+            <button
+              onClick={() => document.getElementById('categoryFileInput')?.click()}
+              className="flex items-center gap-2 text-sky-300 hover:text-sky-200 transition-colors px-3 py-2 rounded-md"
+            >
+              <FaFileImport className="h-5 w-5" />
+              <span>가져오기</span>
+            </button>
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 text-emerald-300 hover:text-emerald-200 transition-colors px-3 py-2 rounded-md"
+            >
+              <FaFileExport className="h-5 w-5" />
+              <span>내보내기</span>
+            </button>
+            <button
+              onClick={handleAddClick}
+              className="flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors px-3 py-2 rounded-md"
+            >
+              <MdAdd className="h-6 w-6" />
+              <span>추가</span>
+            </button>
+          </div>
+        </div>
 
-      <CategoryTree
-        categories={categories}
-        selectedType={selectedType}
-        onEditClick={(category) => {
-          setEditingCategory(category);
-          setIsModalOpen(true);
-        }}
-      />
+        <CategoryList type={selectedType} />
 
-      <CategoryEditModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingCategory(null);
-        }}
-        initialData={editingCategory}
-      />
+        <CategoryEditModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingCategory(null);
+          }}
+          initialData={editingCategory}
+        />
+      </section>
     </div>
   );
 } 

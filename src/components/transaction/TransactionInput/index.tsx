@@ -1,260 +1,218 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import DatePicker from 'react-datepicker';
-import { ko } from 'date-fns/locale';
-import { format } from 'date-fns';
-import "react-datepicker/dist/react-datepicker.css";
-import { useCategoryStore } from '@/store/categoryStore';
-import { useTransactionStore } from '@/store/transactionStore';
+import { useState, useEffect } from "react";
+import { MdAdd } from "react-icons/md";
+import { useCategoryStore } from "@/store/categoryStore";
+import { groupCategories } from "@/utils/categoryUtils";
+import toast from "react-hot-toast";
 
-interface TransactionFormData {
-  날짜: Date;
-  유형: '수입' | '지출';
-  관: string;
-  항: string;
-  목: string;
-  금액: number;
-  메모?: string;
+interface TransactionInputProps {
+  onSave: (transaction: {
+    date: string;
+    type: "수입" | "지출";
+    관: string;
+    항: string;
+    목: string;
+    amount: number;
+    memo?: string;
+  }) => void;
 }
 
-const TransactionInput = () => {
-  const { control, handleSubmit, watch, setValue, reset } = useForm<TransactionFormData>({
-    defaultValues: {
-      날짜: new Date(),
-      유형: '지출',
-    }
+export default function TransactionInput({ onSave }: TransactionInputProps) {
+  const { categories } = useCategoryStore();
+  const [mounted, setMounted] = useState(false);
+  const [formData, setFormData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    type: "지출" as "수입" | "지출",
+    관: "",
+    항: "",
+    목: "",
+    amount: "",
+    memo: "",
   });
 
-  const { categories } = useCategoryStore();
-  const { addTransaction } = useTransactionStore();
-
-  const selectedType = watch('유형');
-  const selectedKwan = watch('관');
-  const selectedHang = watch('항');
-
-  // 관 변경 시 항 초기화
-  useEffect(() => {
-    setValue('항', '');
-    setValue('목', '');
-  }, [selectedKwan, setValue]);
-
-  // 항 변경 시 목 초기화
-  useEffect(() => {
-    setValue('목', '');
-  }, [selectedHang, setValue]);
-
-  const onSubmit = async (data: TransactionFormData) => {
-    const formattedData = {
-      ...data,
-      날짜: format(data.날짜, 'yyyy.MM.dd'),
-      금액: Number(data.금액)
+  const [availableCategories, setAvailableCategories] = useState<{
+    [key: string]: {
+      [key: string]: string[];
     };
+  }>({});
+
+  useEffect(() => {
+    setMounted(true);
+    const grouped = groupCategories(categories, formData.type);
+    setAvailableCategories(grouped);
+  }, [categories, formData.type]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.관 || !formData.항 || !formData.목 || !formData.amount) {
+      toast.error('모든 필수 항목을 입력해주세요.');
+      return;
+    }
 
     try {
-      addTransaction(formattedData);
-      reset({
-        날짜: new Date(),
-        유형: '지출',
+      onSave({
+        ...formData,
+        amount: Number(formData.amount),
       });
+      
+      // 폼 초기화
+      setFormData({
+        date: new Date().toISOString().split('T')[0],
+        type: "지출",
+        관: "",
+        항: "",
+        목: "",
+        amount: "",
+        memo: "",
+      });
+      
+      toast.success('거래가 저장되었습니다.');
     } catch (error) {
-      console.error('저장 실패:', error);
+      console.error('거래 저장 실패:', error);
+      toast.error('거래 저장에 실패했습니다.');
     }
   };
 
-  // 선택된 유형의 관 목록
-  const kwanList = Object.keys(categories[selectedType] || {});
-  
-  // 선택된 관의 항 목록
-  const hangList = selectedKwan
-    ? categories[selectedType][selectedKwan]?.map(item => item.name) || []
-    : [];
-  
-  // 선택된 항의 목 목록
-  const mokList = selectedKwan && selectedHang
-    ? categories[selectedType][selectedKwan]
-        ?.find(item => item.name === selectedHang)
-        ?.subcategories || []
-    : [];
+  const handleTypeChange = (type: "수입" | "지출") => {
+    setFormData(prev => ({ ...prev, type, 관: "", 항: "", 목: "" }));
+    const grouped = groupCategories(categories, type);
+    setAvailableCategories(grouped);
+  };
+
+  const handle관Change = (관: string) => {
+    setFormData(prev => ({ ...prev, 관, 항: "", 목: "" }));
+  };
+
+  const handle항Change = (항: string) => {
+    setFormData(prev => ({ ...prev, 항, 목: "" }));
+  };
+
+  // 초기 마운트 전에는 기본 구조만 렌더링
+  if (!mounted) {
+    return (
+      <div className="space-y-4 bg-gray-800 p-6 rounded-lg">
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* 날짜 선택 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-200">날짜</label>
-          <Controller
-            name="날짜"
-            control={control}
-            render={({ field }) => (
-              <DatePicker
-                selected={field.value}
-                onChange={field.onChange}
-                locale={ko}
-                dateFormat="yyyy.MM.dd"
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white"
-              />
-            )}
+    <form onSubmit={handleSubmit} className="space-y-4 bg-gray-800 p-6 rounded-lg">
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <label className="block text-gray-300 mb-2">날짜</label>
+          <input
+            type="date"
+            value={formData.date}
+            onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+            className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
-
-        {/* 유형 선택 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-200">유형</label>
+        <div className="flex-1">
+          <label className="block text-gray-300 mb-2">유형</label>
           <div className="flex gap-4">
-            <Controller
-              name="유형"
-              control={control}
-              render={({ field }) => (
-                <>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      value="수입"
-                      checked={field.value === '수입'}
-                      onChange={() => {
-                        field.onChange('수입');
-                        setValue('관', '');
-                        setValue('항', '');
-                        setValue('목', '');
-                      }}
-                      className="form-radio text-blue-500"
-                    />
-                    <span className="ml-2 text-white">수입</span>
-                  </label>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      value="지출"
-                      checked={field.value === '지출'}
-                      onChange={() => {
-                        field.onChange('지출');
-                        setValue('관', '');
-                        setValue('항', '');
-                        setValue('목', '');
-                      }}
-                      className="form-radio text-red-500"
-                    />
-                    <span className="ml-2 text-white">지출</span>
-                  </label>
-                </>
-              )}
-            />
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                checked={formData.type === "수입"}
+                onChange={() => handleTypeChange("수입")}
+                className="text-purple-500 focus:ring-purple-500"
+              />
+              <span className="text-white">수입</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                checked={formData.type === "지출"}
+                onChange={() => handleTypeChange("지출")}
+                className="text-purple-500 focus:ring-purple-500"
+              />
+              <span className="text-white">지출</span>
+            </label>
           </div>
         </div>
+      </div>
 
-        {/* 금액 입력 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-200">금액</label>
-          <Controller
-            name="금액"
-            control={control}
-            render={({ field }) => (
-              <input
-                type="number"
-                {...field}
-                value={field.value || ''}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white"
-                placeholder="금액을 입력하세요"
-              />
-            )}
-          />
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="block text-gray-300 mb-2">관</label>
+          <select
+            value={formData.관}
+            onChange={(e) => handle관Change(e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">선택하세요</option>
+            {Object.keys(availableCategories).map((관) => (
+              <option key={관} value={관}>{관}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-gray-300 mb-2">항</label>
+          <select
+            value={formData.항}
+            onChange={(e) => handle항Change(e.target.value)}
+            className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            disabled={!formData.관}
+          >
+            <option value="">선택하세요</option>
+            {formData.관 && Object.keys(availableCategories[formData.관] || {}).map((항) => (
+              <option key={항} value={항}>{항}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-gray-300 mb-2">목</label>
+          <select
+            value={formData.목}
+            onChange={(e) => setFormData(prev => ({ ...prev, 목: e.target.value }))}
+            className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            disabled={!formData.항}
+          >
+            <option value="">선택하세요</option>
+            {formData.관 && formData.항 && (availableCategories[formData.관]?.[formData.항] || []).map((목) => (
+              <option key={목} value={목}>{목}</option>
+            ))}
+          </select>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* 관 선택 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-200">관</label>
-          <Controller
-            name="관"
-            control={control}
-            render={({ field }) => (
-              <select
-                {...field}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white"
-              >
-                <option value="">선택하세요</option>
-                {kwanList.map((kwan) => (
-                  <option key={kwan} value={kwan}>{kwan}</option>
-                ))}
-              </select>
-            )}
-          />
-        </div>
-
-        {/* 항 선택 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-200">항</label>
-          <Controller
-            name="항"
-            control={control}
-            render={({ field }) => (
-              <select
-                {...field}
-                disabled={!selectedKwan}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white"
-              >
-                <option value="">선택하세요</option>
-                {hangList.map((hang) => (
-                  <option key={hang} value={hang}>{hang}</option>
-                ))}
-              </select>
-            )}
-          />
-        </div>
-
-        {/* 목 선택 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-200">목</label>
-          <Controller
-            name="목"
-            control={control}
-            render={({ field }) => (
-              <select
-                {...field}
-                disabled={!selectedHang}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white"
-              >
-                <option value="">선택하세요</option>
-                {mokList.map((mok) => (
-                  <option key={mok} value={mok}>{mok}</option>
-                ))}
-              </select>
-            )}
-          />
-        </div>
-
-        {/* 메모 입력 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-200">메모</label>
-          <Controller
-            name="메모"
-            control={control}
-            render={({ field }) => (
-              <input
-                type="text"
-                {...field}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white"
-                placeholder="메모를 입력하세요"
-              />
-            )}
-          />
-        </div>
+      <div>
+        <label className="block text-gray-300 mb-2">금액</label>
+        <input
+          type="number"
+          value={formData.amount}
+          onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+          className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          placeholder="금액을 입력하세요"
+          min="0"
+        />
       </div>
 
-      {/* 저장 버튼 */}
+      <div>
+        <label className="block text-gray-300 mb-2">메모</label>
+        <textarea
+          value={formData.memo}
+          onChange={(e) => setFormData(prev => ({ ...prev, memo: e.target.value }))}
+          className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          placeholder="메모를 입력하세요 (선택사항)"
+          rows={3}
+        />
+      </div>
+
       <div className="flex justify-end">
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          className="flex items-center gap-2 bg-purple-500 text-white px-6 py-2 rounded-md hover:bg-purple-600 transition-colors"
         >
-          저장하기
+          <MdAdd className="h-5 w-5" />
+          <span>저장</span>
         </button>
       </div>
     </form>
   );
-};
-
-export default TransactionInput; 
+} 

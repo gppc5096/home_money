@@ -1,15 +1,16 @@
 "use client";
 
+import { MdSettings } from "react-icons/md";
 import PageTitle from "@/components/PageTitle";
+import CategoryManager from "@/components/category/CategoryManager";
 import { IoSettings } from "react-icons/io5";
 import { MdDataUsage, MdDelete, MdWarning } from "react-icons/md";
 import { FaFileExport, FaFileImport, FaArrowUp } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
-import CategoryManager from "@/components/category/CategoryManager";
 import { useCategoryStore } from "@/store/categoryStore";
 import { exportCategories, importCategories } from "@/utils/categoryUtils";
 
-export default function Settings() {
+export default function SettingsPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { categories, setCategories } = useCategoryStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,14 +80,13 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex flex-col gap-10 relative">
+    <div className="flex flex-col gap-8 p-8">
       <PageTitle
-        title="거래설정"
-        description="카테고리와 데이터를 관리하고 설정을 변경하세요."
-        icon={IoSettings}
-        iconColor="text-blue-200"
+        title="거래 설정"
+        description="카테고리와 거래 관련 설정을 관리합니다."
+        icon={MdSettings}
+        iconColor="text-purple-200"
       />
-
       <CategoryManager />
 
       {/* 데이터 관리 섹션 */}

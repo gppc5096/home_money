@@ -1,17 +1,23 @@
+"use client";
+
+import { MdQueryStats } from "react-icons/md";
 import PageTitle from "@/components/PageTitle";
 import { IoStatsChart } from "react-icons/io5";
 import { FaChartPie, FaChartBar, FaFileAlt } from "react-icons/fa";
 import { MdAttachMoney, MdAnalytics } from "react-icons/md";
 
-export default function Statistics() {
+export default function StatisticsPage() {
   return (
-    <div className="flex flex-col gap-17">
+    <div className="flex flex-col gap-8 p-8">
       <PageTitle
-        title="거래통계"
-        description="수입/지출 내역을 다양한 차트와 통계로 분석하세요."
-        icon={IoStatsChart}
-        iconColor="text-pink-200"
+        title="거래 통계"
+        description="거래 내역을 분석하고 통계를 확인합니다."
+        icon={MdQueryStats}
+        iconColor="text-emerald-200"
       />
+      <section className="bg-gray-900 rounded-lg p-6">
+        <p className="text-gray-400">통계 기능 개발 중...</p>
+      </section>
 
       {/* 재무현황 섹션 */}
       <section>

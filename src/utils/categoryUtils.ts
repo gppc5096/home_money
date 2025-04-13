@@ -1,41 +1,41 @@
-import type { Category } from '@/components/category/CategoryManager';
+import type { Category } from '@/store/categoryStore';
 
 // 기본 카테고리 데이터
 const DEFAULT_CATEGORIES: Category[] = [
   // 수입 카테고리
-  { 유형: "수입", 관: "급여", 항: "정기급여", 목: "월급" },
-  { 유형: "수입", 관: "급여", 항: "정기급여", 목: "상여금" },
-  { 유형: "수입", 관: "금융소득", 항: "이자수입", 목: "예금이자" },
-  { 유형: "수입", 관: "금융소득", 항: "배당수입", 목: "주식배당" },
+  { 유형: "수입", 관: "근로소득", 항: "급여", 목: "월급" },
+  { 유형: "수입", 관: "근로소득", 항: "상여", 목: "성과급" },
+  { 유형: "수입", 관: "금융소득", 항: "이자", 목: "예금이자" },
+  { 유형: "수입", 관: "금융소득", 항: "배당", 목: "주식배당" },
   
   // 지출 카테고리
-  { 유형: "지출", 관: "식비", 항: "식사비", 목: "주식" },
-  { 유형: "지출", 관: "식비", 항: "식사비", 목: "부식" },
-  { 유형: "지출", 관: "주거비", 항: "공과금", 목: "전기세" },
-  { 유형: "지출", 관: "주거비", 항: "공과금", 목: "수도세" },
-  { 유형: "지출", 관: "교통비", 항: "대중교통", 목: "버스" },
-  { 유형: "지출", 관: "교통비", 항: "대중교통", 목: "지하철" }
+  { 유형: "지출", 관: "생활비", 항: "식비", 목: "식료품" },
+  { 유형: "지출", 관: "생활비", 항: "식비", 목: "외식" },
+  { 유형: "지출", 관: "생활비", 항: "주거비", 목: "월세" },
+  { 유형: "지출", 관: "생활비", 항: "주거비", 목: "관리비" },
+  { 유형: "지출", 관: "생활비", 항: "교통비", 목: "대중교통" },
+  { 유형: "지출", 관: "생활비", 항: "교통비", 목: "주유비" },
 ];
 
 // localStorage 키
-const STORAGE_KEY = 'house-holder-categories';
+const STORAGE_KEY = 'categories';
 
 // localStorage에서 카테고리 데이터 불러오기
-const loadFromStorage = (): Category[] => {
-  if (typeof window === 'undefined') return [];
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return [];
+export const loadFromStorage = async (): Promise<Category[]> => {
   try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return DEFAULT_CATEGORIES;
+    }
     return JSON.parse(stored);
   } catch (error) {
-    console.error('저장된 카테고리 데이터 파싱 실패:', error);
-    return [];
+    console.error('카테고리 데이터 로드 실패:', error);
+    return DEFAULT_CATEGORIES;
   }
 };
 
 // localStorage에 카테고리 데이터 저장
 export const saveToStorage = (categories: Category[]) => {
-  if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
   } catch (error) {
@@ -45,7 +45,7 @@ export const saveToStorage = (categories: Category[]) => {
 
 export async function loadCategories(): Promise<Category[]> {
   // 1. localStorage에서 먼저 확인
-  const storedCategories = loadFromStorage();
+  const storedCategories = await loadFromStorage();
   if (storedCategories.length > 0) {
     return storedCategories;
   }

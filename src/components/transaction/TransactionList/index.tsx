@@ -7,6 +7,9 @@ import { ko } from 'date-fns/locale';
 import TransactionModal from './TransactionModal';
 import Pagination from './Pagination';
 import { useTransactionStore, Transaction } from '@/store/transactionStore';
+import { toast } from 'react-hot-toast';
+import DateDivider from './DateDivider';
+import { formatNumber } from '@/utils/formatNumber';
 
 interface DateGroup {
   date: string;
@@ -18,88 +21,89 @@ interface DateGroup {
   };
 }
 
-const formatNumber = (num: number) => {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-};
-
-const DateDivider: React.FC<DateGroup> = ({ date, dayOfWeek, totalAmount }) => (
-  <div className="bg-gray-700/30 px-4 py-2 text-sm flex justify-between items-center">
-    <span className="text-blue-200 font-medium">{date} ({dayOfWeek})</span>
-    <div className="flex gap-4">
-      {totalAmount.income > 0 && (
-        <span className="text-blue-400">수입: {formatNumber(totalAmount.income)}원</span>
-      )}
-      {totalAmount.expense > 0 && (
-        <span className="text-red-400">지출: {formatNumber(totalAmount.expense)}원</span>
-      )}
-    </div>
-  </div>
-);
-
 const ITEMS_PER_PAGE = 10;
 
 const TransactionList = () => {
-  const { transactions, updateTransaction, deleteTransaction, setTransactions } = useTransactionStore();
+  const [mounted, setMounted] = useState(false);
+  const { transactions, updateTransaction, deleteTransaction } = useTransactionStore();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>();
   const [modalMode, setModalMode] = useState<'edit' | 'delete'>('edit');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 초기 데이터 로드 (localStorage에 데이터가 없을 경우에만)
   useEffect(() => {
-    const loadInitialData = async () => {
-      if (transactions.length === 0) {
-        try {
-          const response = await fetch('/1-거래내역.json');
-          if (!response.ok) throw new Error('데이터를 불러오는데 실패했습니다.');
-          const data = await response.json();
-          setTransactions(data);
-        } catch (err) {
-          console.error('초기 데이터 로드 실패:', err);
-        }
-      }
-    };
+    setMounted(true);
+  }, []);
 
-    loadInitialData();
-  }, [transactions.length, setTransactions]);
+  if (!mounted) {
+    return (
+      <div className="animate-pulse space-y-4">
+        <div className="h-20 bg-gray-700 rounded-md" />
+        <div className="h-20 bg-gray-700 rounded-md" />
+        <div className="h-20 bg-gray-700 rounded-md" />
+      </div>
+    );
+  }
 
   const groupTransactionsByDate = (transactions: Transaction[]): DateGroup[] => {
     const groups: { [key: string]: Transaction[] } = {};
     
-    // 날짜별로 거래 그룹화
     transactions.forEach(transaction => {
-      const date = transaction.날짜;
-      if (!groups[date]) {
-        groups[date] = [];
+      try {
+        const transactionDate = new Date(transaction.date);
+        if (isNaN(transactionDate.getTime())) {
+          console.error('Invalid date:', transaction.date);
+          return;
+        }
+        
+        const date = format(transactionDate, 'yyyy년 MM월 dd일');
+        if (!groups[date]) {
+          groups[date] = [];
+        }
+        groups[date].push(transaction);
+      } catch (error) {
+        console.error('Date processing error:', error);
       }
-      groups[date].push(transaction);
     });
 
-    // DateGroup 배열로 변환
     return Object.entries(groups).map(([date, transactions]) => {
-      const [year, month, day] = date.split('.');
-      const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      const dayOfWeek = format(dateObj, 'EEEE', { locale: ko });
-
-      const totalAmount = transactions.reduce(
-        (acc, curr) => {
-          if (curr.유형 === '수입') {
-            acc.income += curr.금액;
-          } else {
-            acc.expense += curr.금액;
-          }
-          return acc;
-        },
-        { income: 0, expense: 0 }
-      );
-
-      return {
-        date,
-        dayOfWeek,
-        transactions,
-        totalAmount,
-      };
-    }).sort((a, b) => b.date.localeCompare(a.date)); // 날짜 내림차순 정렬
+      try {
+        const firstTransaction = transactions[0];
+        const transactionDate = new Date(firstTransaction.date);
+        const dayOfWeek = format(transactionDate, 'EEEE', { locale: ko });
+        
+        const totalAmount = transactions.reduce(
+          (acc, curr) => {
+            if (curr.type === '수입') {
+              acc.income += curr.amount;
+            } else {
+              acc.expense += curr.amount;
+            }
+            return acc;
+          },
+          { income: 0, expense: 0 }
+        );
+        
+        return { date, dayOfWeek, transactions, totalAmount };
+      } catch (error) {
+        console.error('Date group processing error:', error);
+        return {
+          date,
+          dayOfWeek: '요일 정보 없음',
+          transactions,
+          totalAmount: { income: 0, expense: 0 }
+        };
+      }
+    }).sort((a, b) => {
+      try {
+        const dateA = new Date(a.transactions[0].date);
+        const dateB = new Date(b.transactions[0].date);
+        return dateB.getTime() - dateA.getTime();
+      } catch (error) {
+        console.error('Date sorting error:', error);
+        return 0;
+      }
+    });
   };
 
   const handleEdit = (transaction: Transaction) => {
@@ -114,117 +118,105 @@ const TransactionList = () => {
     setIsModalOpen(true);
   };
 
-  const handleModalConfirm = (updatedTransaction?: Transaction) => {
-    if (!selectedTransaction) return;
-
-    if (modalMode === 'edit' && updatedTransaction) {
-      updateTransaction(selectedTransaction, updatedTransaction);
-    } else if (modalMode === 'delete') {
+  const handleConfirmDelete = () => {
+    if (selectedTransaction) {
       deleteTransaction(selectedTransaction);
+      setIsModalOpen(false);
+      toast.success('거래가 삭제되었습니다');
     }
-    
-    setIsModalOpen(false);
-    setSelectedTransaction(undefined);
   };
 
-  // 페이지네이션 처리
-  const totalPages = Math.ceil(transactions.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentTransactions = transactions.slice(startIndex, endIndex);
-  const currentGroupedTransactions = groupTransactionsByDate(currentTransactions);
+  const handleConfirmEdit = (updatedTransaction: Transaction) => {
+    updateTransaction(updatedTransaction);
+    setIsModalOpen(false);
+    toast.success('거래가 수정되었습니다');
+  };
 
-  if (transactions.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-400">
-        등록된 거래가 없습니다.
-      </div>
-    );
-  }
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateB.getTime() - dateA.getTime();
+  });
+
+  const totalPages = Math.ceil(sortedTransactions.length / ITEMS_PER_PAGE);
+  const paginatedTransactions = sortedTransactions.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const groupedTransactions = groupTransactionsByDate(paginatedTransactions);
 
   return (
-    <div className="w-full">
-      <div className="overflow-x-auto">
-        <table className="w-full bg-gray-900 rounded-lg overflow-hidden">
-          <thead className="bg-gray-800 text-gray-200">
-            <tr>
-              <th className="px-4 py-3 text-left">날짜</th>
-              <th className="px-4 py-3 text-left">유형</th>
-              <th className="px-4 py-3 text-left">관/항/목</th>
-              <th className="px-4 py-3 text-right">금액</th>
-              <th className="px-4 py-3 text-left hidden md:table-cell">메모</th>
-              <th className="px-4 py-3 text-center">관리</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentGroupedTransactions.map((group) => (
-              <React.Fragment key={group.date}>
-                <tr>
-                  <td colSpan={6}>
-                    <DateDivider {...group} />
-                  </td>
-                </tr>
-                {group.transactions.map((transaction, idx) => (
-                  <tr 
-                    key={`${group.date}-${idx}`}
-                    className="hover:bg-gray-700/50 transition-colors even:bg-gray-800/50"
-                  >
-                    <td className="px-4 py-3">{transaction.날짜}</td>
-                    <td className="px-4 py-3">
-                      <span className={transaction.유형 === '수입' ? 'text-blue-400' : 'text-red-400'}>
-                        {transaction.유형}
+    <div className="space-y-4">
+      {groupedTransactions.length > 0 ? (
+        groupedTransactions.map(({ date, dayOfWeek, transactions, totalAmount }) => (
+          <div key={date} className="space-y-2">
+            <DateDivider
+              date={date}
+              dayOfWeek={dayOfWeek}
+              transactions={transactions}
+              totalAmount={totalAmount}
+            />
+            <div className="space-y-2">
+              {transactions.map(transaction => (
+                <div
+                  key={transaction.id}
+                  className="bg-gray-800 p-4 rounded-lg flex justify-between items-center"
+                >
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-400">
+                        {transaction.관} &gt; {transaction.항} &gt; {transaction.목}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {transaction.관}/{transaction.항}/{transaction.목}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {formatNumber(transaction.금액)}원
-                    </td>
-                    <td className="px-4 py-3 hidden md:table-cell">
-                      <div className="truncate max-w-xs" title={transaction.메모}>
-                        {transaction.메모 || '-'}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-center gap-2">
-                        <button 
-                          className="text-emerald-500 hover:text-emerald-400 transition-colors"
-                          onClick={() => handleEdit(transaction)}
-                        >
-                          <FaEdit size={16} />
-                        </button>
-                        <button 
-                          className="text-red-500 hover:text-red-400 transition-colors"
-                          onClick={() => handleDelete(transaction)}
-                        >
-                          <FaTrash size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                      <span className={`font-medium ${
+                        transaction.type === '수입' ? 'text-blue-400' : 'text-red-400'
+                      }`}>
+                        {transaction.type === '수입' ? '+' : '-'}{formatNumber(transaction.amount)}원
+                      </span>
+                    </div>
+                    {transaction.memo && (
+                      <p className="text-sm text-gray-300">{transaction.memo}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => handleEdit(transaction)}
+                      className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(transaction)}
+                      className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="text-center py-8 text-gray-400">
+          거래 내역이 없습니다.
+        </div>
+      )}
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
 
       <TransactionModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedTransaction(undefined);
-        }}
-        transaction={selectedTransaction}
+        onClose={() => setIsModalOpen(false)}
         mode={modalMode}
-        onConfirm={handleModalConfirm}
+        transaction={selectedTransaction}
+        onConfirm={modalMode === 'edit' ? handleConfirmEdit : handleConfirmDelete}
       />
     </div>
   );

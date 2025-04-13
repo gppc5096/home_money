@@ -4,6 +4,7 @@ import PageTitle from "@/components/PageTitle";
 import { IoWallet } from "react-icons/io5";
 import { IoAddCircle } from "react-icons/io5";
 import TransactionList from "@/components/transaction/TransactionList";
+import TransactionForm from "@/components/transaction/TransactionInput/TransactionForm";
 import { FaArrowUp } from "react-icons/fa";
 import { useState, useEffect } from "react";
 
@@ -44,8 +45,7 @@ export default function InputPage() {
           <h2 className="text-xl font-semibold text-white">신규 거래 입력</h2>
         </div>
         <div className="bg-gray-800/50 rounded-lg p-6">
-          {/* 거래 입력 폼이 이곳에 추가될 예정입니다 */}
-          <p className="text-gray-400">거래 입력 폼이 이곳에 위치합니다.</p>
+          <TransactionForm />
         </div>
       </section>
 

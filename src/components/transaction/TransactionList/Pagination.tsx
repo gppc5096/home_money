@@ -11,77 +11,40 @@ interface PaginationProps {
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
-  onPageChange,
+  onPageChange
 }) => {
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-  
-  // 표시할 페이지 번호 계산
-  const getVisiblePages = () => {
-    const delta = 2; // 현재 페이지 기준 양쪽에 보여줄 페이지 수
-    const range = [];
-    const rangeWithDots = [];
-    let l;
-
-    for (let i = 1; i <= totalPages; i++) {
-      if (
-        i === 1 ||
-        i === totalPages ||
-        (i >= currentPage - delta && i <= currentPage + delta)
-      ) {
-        range.push(i);
-      }
-    }
-
-    for (let i of range) {
-      if (l) {
-        if (i - l === 2) {
-          rangeWithDots.push(l + 1);
-        } else if (i - l !== 1) {
-          rangeWithDots.push('...');
-        }
-      }
-      rangeWithDots.push(i);
-      l = i;
-    }
-
-    return rangeWithDots;
-  };
 
   return (
-    <div className="flex justify-center items-center gap-2 mt-6">
+    <div className="flex justify-center gap-2">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 rounded-md bg-gray-800 text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-3 py-1 rounded-md bg-gray-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
       >
-        <FaChevronLeft size={14} />
+        이전
       </button>
       
-      {getVisiblePages().map((page, index) => (
+      {pages.map(page => (
         <button
-          key={index}
-          onClick={() => typeof page === 'number' ? onPageChange(page) : null}
-          disabled={page === '...'}
-          className={`
-            min-w-[32px] h-8 px-3 rounded-md
-            ${typeof page === 'number' && page === currentPage
-              ? 'bg-blue-500 text-white'
-              : page === '...'
-              ? 'bg-transparent text-gray-400 cursor-default'
-              : 'bg-gray-800 text-gray-400 hover:text-white'
-            }
-          `}
+          key={page}
+          onClick={() => onPageChange(page)}
+          className={`px-3 py-1 rounded-md ${
+            currentPage === page
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-700 text-white hover:bg-gray-600'
+          }`}
         >
           {page}
         </button>
       ))}
-
+      
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-md bg-gray-800 text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-3 py-1 rounded-md bg-gray-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
       >
-        <FaChevronRight size={14} />
+        다음
       </button>
     </div>
   );

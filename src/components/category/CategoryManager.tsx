@@ -36,6 +36,10 @@ export default function CategoryManager() {
       try {
         const initialCategories = await loadCategories();
         setCategories(initialCategories);
+        // 현재 저장된 카테고리 데이터 출력
+        console.log('현재 저장된 카테고리 데이터:', initialCategories);
+        const storedData = localStorage.getItem('house-holder-categories');
+        console.log('localStorage 원본 데이터:', storedData);
       } catch (error) {
         console.error('카테고리 초기화 실패:', error);
         toast.error('카테고리를 불러오는데 실패했습니다.');

@@ -1,6 +1,12 @@
 import { create } from 'zustand';
-import type { Category } from '@/components/category/CategoryManager';
-import { saveToStorage } from '@/utils/categoryUtils';
+import { loadFromStorage, saveToStorage } from '@/utils/categoryUtils';
+
+export interface Category {
+  유형: "수입" | "지출";
+  관: string;
+  항: string;
+  목: string;
+}
 
 interface CategoryState {
   categories: Category[];
@@ -11,11 +17,12 @@ interface CategoryState {
   addCategory: (category: Category) => void;
   updateCategory: (oldCategory: Category, newCategory: Category) => void;
   deleteCategory: (category: Category) => void;
-  moveCategoryUp: (관: string, type: "수입" | "지출") => void;
-  moveCategoryDown: (관: string, type: "수입" | "지출") => void;
+  moveCategoryUp: (category: Category) => void;
+  moveCategoryDown: (category: Category) => void;
   setSelectedType: (type: "수입" | "지출") => void;
   setIsModalOpen: (isOpen: boolean) => void;
   setEditingCategory: (category: Category | null) => void;
+  loadCategories: () => Promise<void>;
 }
 
 // 카테고리 비교 함수
@@ -25,91 +32,71 @@ const isSameCategory = (a: Category, b: Category) =>
   a.항 === b.항 && 
   a.목 === b.목;
 
-export const useCategoryStore = create<CategoryState>((set) => ({
+export const useCategoryStore = create<CategoryState>((set, get) => ({
   categories: [],
-  selectedType: "수입",
+  selectedType: "지출",
   isModalOpen: false,
   editingCategory: null,
 
+  loadCategories: async () => {
+    try {
+      const categories = await loadFromStorage();
+      set({ categories });
+    } catch (error) {
+      console.error('카테고리 로드 실패:', error);
+      throw error;
+    }
+  },
+
   setCategories: (categories) => {
-    saveToStorage(categories);
     set({ categories });
+    saveToStorage(categories);
   },
   
-  addCategory: (category) =>
-    set((state) => {
-      const newCategories = [...state.categories, category];
-      saveToStorage(newCategories);
-      return { categories: newCategories };
-    }),
+  addCategory: (category) => {
+    const { categories } = get();
+    const newCategories = [...categories, category];
+    set({ categories: newCategories });
+    saveToStorage(newCategories);
+  },
 
-  updateCategory: (oldCategory, newCategory) =>
-    set((state) => {
-      const newCategories = state.categories.map((cat) =>
-        isSameCategory(cat, oldCategory) ? newCategory : cat
-      );
-      saveToStorage(newCategories);
-      return { categories: newCategories };
-    }),
+  updateCategory: (oldCategory, newCategory) => {
+    const { categories } = get();
+    const newCategories = categories.map(cat => 
+      isSameCategory(cat, oldCategory) ? newCategory : cat
+    );
+    set({ categories: newCategories });
+    saveToStorage(newCategories);
+  },
 
-  deleteCategory: (category) =>
-    set((state) => {
-      const newCategories = state.categories.filter((cat) => !isSameCategory(cat, category));
-      saveToStorage(newCategories);
-      return { categories: newCategories };
-    }),
+  deleteCategory: (category) => {
+    const { categories } = get();
+    const newCategories = categories.filter(cat => !isSameCategory(cat, category));
+    set({ categories: newCategories });
+    saveToStorage(newCategories);
+  },
 
-  moveCategoryUp: (관, type) =>
-    set((state) => {
-      const typeCategories = state.categories
-        .filter(cat => cat.유형 === type)
-        .reduce<string[]>((acc, cat) => {
-          if (!acc.includes(cat.관)) {
-            acc.push(cat.관);
-          }
-          return acc;
-        }, []);
+  moveCategoryUp: (category) => {
+    const { categories } = get();
+    const index = categories.findIndex(cat => isSameCategory(cat, category));
+    if (index <= 0) return;
 
-      const currentIndex = typeCategories.indexOf(관);
-      if (currentIndex <= 0) return state;
+    const newCategories = [...categories];
+    [newCategories[index - 1], newCategories[index]] = [newCategories[index], newCategories[index - 1]];
+    set({ categories: newCategories });
+    saveToStorage(newCategories);
+  },
 
-      const prevCategory = typeCategories[currentIndex - 1];
-      const updatedCategories = state.categories.map(cat => {
-        if (cat.유형 !== type) return cat;
-        if (cat.관 === 관) return { ...cat, 관: prevCategory };
-        if (cat.관 === prevCategory) return { ...cat, 관: 관 };
-        return cat;
-      });
+  moveCategoryDown: (category) => {
+    const { categories } = get();
+    const index = categories.findIndex(cat => isSameCategory(cat, category));
+    if (index === -1 || index === categories.length - 1) return;
 
-      saveToStorage(updatedCategories);
-      return { categories: updatedCategories };
-    }),
-
-  moveCategoryDown: (관, type) =>
-    set((state) => {
-      const typeCategories = state.categories
-        .filter(cat => cat.유형 === type)
-        .reduce<string[]>((acc, cat) => {
-          if (!acc.includes(cat.관)) {
-            acc.push(cat.관);
-          }
-          return acc;
-        }, []);
-
-      const currentIndex = typeCategories.indexOf(관);
-      if (currentIndex === -1 || currentIndex === typeCategories.length - 1) return state;
-
-      const nextCategory = typeCategories[currentIndex + 1];
-      const updatedCategories = state.categories.map(cat => {
-        if (cat.유형 !== type) return cat;
-        if (cat.관 === 관) return { ...cat, 관: nextCategory };
-        if (cat.관 === nextCategory) return { ...cat, 관: 관 };
-        return cat;
-      });
-
-      saveToStorage(updatedCategories);
-      return { categories: updatedCategories };
-    }),
+    const newCategories = [...categories];
+    [newCategories[index], newCategories[index + 1]] = [newCategories[index + 1], newCategories[index]];
+    set({ categories: newCategories });
+    saveToStorage(newCategories);
+  },
 
   setSelectedType: (type) => set({ selectedType: type }),
   setIsModalOpen: (isOpen) => set({ isModalOpen: isOpen }),

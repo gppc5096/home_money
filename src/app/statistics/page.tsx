@@ -7,6 +7,9 @@ import { FaWallet, FaMoneyBillWave, FaChartLine, FaRegMoneyBillAlt } from "react
 import { useState, useEffect } from "react";
 import { useTransactionStore } from "@/store/transactionStore";
 import { formatAmount } from "@/utils/formatters";
+import { FaChartBar, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { BiAnalyse } from 'react-icons/bi';
+import { MdOutlineQueryStats, MdTimeline } from 'react-icons/md';
 
 // 카드 스타일 상수 정의
 const CARD_STYLES = {
@@ -147,6 +150,64 @@ export default function StatisticsPage() {
           </div>
         </div>
       </section>
+
+      {/* 구분선 */}
+      <div className="w-full border-t border-white/20 my-8" />
+
+      {/* 분석 섹션 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* 상세통계분석 */}
+        <div className="bg-gray-800/50 rounded-xl p-6 border border-white/10">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-500/10">
+              <BiAnalyse className="w-6 h-6 text-indigo-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-white">상세통계분석</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-700/30">
+              <FaChartLine className="w-5 h-5 text-blue-400" />
+              <div>
+                <p className="text-sm text-gray-300">일일 거래 추이</p>
+                <p className="text-lg font-medium text-white">데이터 준비중...</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-700/30">
+              <FaChartBar className="w-5 h-5 text-purple-400" />
+              <div>
+                <p className="text-sm text-gray-300">카테고리별 분석</p>
+                <p className="text-lg font-medium text-white">데이터 준비중...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 기간별통계분석 */}
+        <div className="bg-gray-800/50 rounded-xl p-6 border border-white/10">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/10">
+              <MdOutlineQueryStats className="w-6 h-6 text-amber-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-white">기간별통계분석</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-700/30">
+              <MdTimeline className="w-5 h-5 text-green-400" />
+              <div>
+                <p className="text-sm text-gray-300">월별 추이</p>
+                <p className="text-lg font-medium text-white">데이터 준비중...</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-700/30">
+              <FaWallet className="w-5 h-5 text-rose-400" />
+              <div>
+                <p className="text-sm text-gray-300">연간 분석</p>
+                <p className="text-lg font-medium text-white">데이터 준비중...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 } 

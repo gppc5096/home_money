@@ -6,6 +6,7 @@ import { IoStatsChart } from "react-icons/io5";
 import { FaChartPie, FaChartBar, FaFileAlt, FaArrowUp } from "react-icons/fa";
 import { MdAttachMoney, MdAnalytics } from "react-icons/md";
 import { useState, useEffect } from "react";
+import TransactionList from '@/components/transaction/TransactionList';
 
 export default function StatisticsPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -29,16 +30,16 @@ export default function StatisticsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8 p-8">
+    <div className="container mx-auto px-4 py-8">
       <PageTitle
-        title="거래 통계"
+        title="거래목록현황"
         description="거래 내역을 분석하고 통계를 확인합니다."
         icon={MdQueryStats}
         iconColor="text-emerald-200"
       />
-      <section className="bg-gray-900 rounded-lg p-6">
-        <p className="text-gray-400">통계 기능 개발 중...</p>
-      </section>
+      <div className="mt-8">
+        <TransactionList />
+      </div>
 
       {/* 재무현황 섹션 */}
       <section>

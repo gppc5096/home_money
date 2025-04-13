@@ -148,72 +148,81 @@ const TransactionList = () => {
 
   return (
     <div className="space-y-4">
-      {groupedTransactions.length > 0 ? (
-        groupedTransactions.map(({ date, dayOfWeek, transactions, totalAmount }) => (
-          <div key={date} className="space-y-2">
-            <DateDivider
-              date={date}
-              dayOfWeek={dayOfWeek}
-              transactions={transactions}
-              totalAmount={totalAmount}
-            />
-            <div className="space-y-2">
-              {transactions.map(transaction => (
-                <div
-                  key={transaction.id}
-                  className="bg-gray-800 p-4 rounded-lg flex justify-between items-center"
-                >
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-400">
-                        {transaction.관} &gt; {transaction.항} &gt; {transaction.목}
-                      </span>
-                      <span className={`font-medium ${
-                        transaction.type === '수입' ? 'text-blue-400' : 'text-red-400'
-                      }`}>
-                        {transaction.type === '수입' ? '+' : '-'}{formatNumber(transaction.amount)}원
-                      </span>
+      <div className="overflow-hidden bg-gray-900 shadow sm:rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          {groupedTransactions.length > 0 ? (
+            groupedTransactions.map(({ date, dayOfWeek, transactions, totalAmount }) => (
+              <div key={date} className="space-y-2">
+                <DateDivider
+                  date={date}
+                  dayOfWeek={dayOfWeek}
+                  transactions={transactions}
+                  totalAmount={totalAmount}
+                />
+                <div className="space-y-2">
+                  {transactions.map(transaction => (
+                    <div
+                      key={transaction.id}
+                      className="bg-gray-800 p-4 rounded-lg flex justify-between items-center"
+                    >
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm text-gray-400">
+                            {transaction.관} &gt; {transaction.항} &gt; {transaction.목}
+                          </span>
+                          <span className={`font-medium ${
+                            transaction.type === '수입' ? 'text-blue-400' : 'text-red-400'
+                          }`}>
+                            {transaction.type === '수입' ? '+' : '-'}{formatNumber(transaction.amount)}원
+                          </span>
+                        </div>
+                        {transaction.memo && (
+                          <p className="text-sm text-gray-300">{transaction.memo}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => handleEdit(transaction)}
+                          className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(transaction)}
+                          className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
                     </div>
-                    {transaction.memo && (
-                      <p className="text-sm text-gray-300">{transaction.memo}</p>
-                    )}
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEdit(transaction)}
-                      className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(transaction)}
-                      className="p-2 text-gray-400 hover:text-red-400 transition-colors"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              거래 내역이 없습니다.
             </div>
-          </div>
-        ))
-      ) : (
-        <div className="text-center py-8 text-gray-400">
-          거래 내역이 없습니다.
+          )}
         </div>
-      )}
+      </div>
 
       {totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
+        <div className="mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
       )}
 
       <TransactionModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTransaction(undefined);
+        }}
         mode={modalMode}
         transaction={selectedTransaction}
         onConfirm={modalMode === 'edit' ? handleConfirmEdit : handleConfirmDelete}

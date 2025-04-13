@@ -15,6 +15,8 @@ import { SpendingInsights } from '@/components/statistics/SpendingInsights';
 import { HeatmapCalendar } from '@/components/statistics/HeatmapCalendar';
 import { PeriodicalAnalysis } from '@/components/statistics/PeriodicalAnalysis';
 import { CategoryAnalysis } from '@/components/statistics/CategoryAnalysis';
+import { PeriodFilterAnalysis } from '@/components/statistics/PeriodFilterAnalysis';
+import { CategoryFilterAnalysis } from '@/components/statistics/CategoryFilterAnalysis';
 
 // 카드 스타일 상수 정의
 const CARD_STYLES = {
@@ -185,6 +187,10 @@ export default function StatisticsPage() {
           </div>
           <div className="space-y-6">
             <PeriodicalAnalysis />
+            {/* 구분선 */}
+            <div className="h-[1px] bg-white/20" />
+            {/* 카테고리별 필터분석 */}
+            <CategoryFilterAnalysis />
           </div>
         </div>
       </div>

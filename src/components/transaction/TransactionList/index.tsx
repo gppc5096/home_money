@@ -70,7 +70,15 @@ const TransactionList: React.FC = () => {
 
   const totalPages = Math.ceil(transactions.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedTransactions = transactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  
+  // 날짜 기준 내림차순 정렬 (최신 날짜가 위로)
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    const dateA = new Date(a.날짜.split('.').join('-'));
+    const dateB = new Date(b.날짜.split('.').join('-'));
+    return dateB.getTime() - dateA.getTime();
+  });
+  
+  const paginatedTransactions = sortedTransactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('ko-KR').format(amount);
@@ -101,61 +109,61 @@ const TransactionList: React.FC = () => {
   };
 
   return (
-    <>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mx-auto max-w-full overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">유형</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">항</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">목</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">금액</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">메모</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">날짜</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">유형</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">관</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">항</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">목</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">금액</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">메모</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">작업</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedTransactions.map((transaction, index) => (
-              <tr key={transaction.id || index} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.날짜}</td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${
-                  transaction.유형 === '수입' ? 'text-blue-600' : 'text-red-600'
-                }`}>
-                  {transaction.유형}
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            {paginatedTransactions.map((transaction) => (
+              <tr key={transaction.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{transaction.날짜}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  <span className={transaction.유형 === '지출' ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}>
+                    {transaction.유형}
+                  </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.관}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.항}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.목}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{transaction.관}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{transaction.항}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{transaction.목}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right">
                   {formatAmount(transaction.금액)}원
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {transaction.메모 || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                  <div className="flex justify-center space-x-2">
-                    <button
-                      onClick={() => handleEdit(transaction)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <FiEdit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(transaction)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <FiTrash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{transaction.메모 || '-'}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button
+                    onClick={() => handleEdit(transaction)}
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 inline-flex items-center"
+                    title="수정"
+                  >
+                    <FiEdit2 className="w-5 h-5" />
+                    <span className="sr-only">수정</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(transaction)}
+                    className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 ml-3 inline-flex items-center"
+                    title="삭제"
+                  >
+                    <FiTrash2 className="w-5 h-5" />
+                    <span className="sr-only">삭제</span>
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-
+      
       {totalPages > 1 && (
         <div className="flex justify-center mt-4 space-x-2">
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -164,8 +172,8 @@ const TransactionList: React.FC = () => {
               onClick={() => setCurrentPage(page)}
               className={`px-3 py-1 rounded ${
                 currentPage === page
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
               {page}
@@ -190,10 +198,10 @@ const TransactionList: React.FC = () => {
           setIsDeleteModalOpen(false);
           setSelectedTransaction(null);
         }}
-        transaction={selectedTransaction}
         onConfirm={handleConfirmDelete}
+        transaction={selectedTransaction}
       />
-    </>
+    </div>
   );
 };
 

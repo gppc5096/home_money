@@ -6,6 +6,7 @@ import { IoStatsChart } from "react-icons/io5";
 import { FaChartPie, FaChartBar, FaFileAlt, FaArrowUp } from "react-icons/fa";
 import { MdAttachMoney, MdAnalytics } from "react-icons/md";
 import { useState, useEffect } from "react";
+import TransactionList from "@/components/transaction/TransactionList";
 
 export default function StatisticsPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -36,6 +37,17 @@ export default function StatisticsPage() {
         icon={MdQueryStats}
         iconColor="text-blue-500"
       />
+
+      {/* 거래목록현황 섹션 */}
+      <section className="mb-8">
+        <div className="mb-6 flex items-center gap-3">
+          <FaFileAlt className="h-6 w-6 text-emerald-200" />
+          <h2 className="text-xl font-semibold text-white">거래목록현황</h2>
+        </div>
+        <div className="bg-gray-800 rounded-lg p-8">
+          <TransactionList />
+        </div>
+      </section>
 
       {/* 재무현황 섹션 */}
       <section>

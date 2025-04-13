@@ -3,6 +3,7 @@
 import PageTitle from "@/components/PageTitle";
 import { IoWallet } from "react-icons/io5";
 import { IoAddCircle } from "react-icons/io5";
+import { FaListAlt } from "react-icons/fa";
 import TransactionList from "@/components/transaction/TransactionList";
 import TransactionForm from "@/components/transaction/TransactionInput/TransactionForm";
 import { FaArrowUp } from "react-icons/fa";
@@ -54,13 +55,16 @@ export default function InputPage() {
 
       {/* 거래목록현황 섹션 */}
       <section className="bg-gray-900 rounded-lg p-6">
-        <div className="mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <FaListAlt className="h-6 w-6 text-yellow-200" />
           <h2 className="text-xl font-semibold text-white">거래목록현황</h2>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="text-gray-400 text-sm ml-2">
             최근 거래내역을 확인하고 관리할 수 있습니다.
           </p>
         </div>
-        <TransactionList />
+        <div className="bg-gray-800/50 rounded-lg p-6">
+          <TransactionList />
+        </div>
       </section>
 
       {/* 위로가기 버튼 */}

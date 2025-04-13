@@ -6,228 +6,208 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import TransactionModal from './TransactionModal';
 import Pagination from './Pagination';
-import { useTransactionStore, Transaction } from '@/store/transactionStore';
+import { useTransactionStore } from '@/store/transactionStore';
 import { toast } from 'react-hot-toast';
 import DateDivider from './DateDivider';
 import { formatNumber } from '@/utils/formatNumber';
+import DeleteConfirmModal from './DeleteConfirmModal';
+import { loadTransactions } from '@/utils/transactionUtils';
+import TransactionItem from './TransactionItem';
+import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 
-interface DateGroup {
-  date: string;
-  dayOfWeek: string;
-  transactions: Transaction[];
-  totalAmount: {
-    income: number;
-    expense: number;
+interface GroupedTransactions {
+  [date: string]: {
+    transactions: Transaction[];
+    totalIncome: number;
+    totalExpense: number;
   };
 }
 
 const ITEMS_PER_PAGE = 10;
 
 const TransactionList = () => {
-  const [mounted, setMounted] = useState(false);
-  const { transactions, updateTransaction, deleteTransaction } = useTransactionStore();
+  const { transactions, setTransactions, updateTransaction, deleteTransaction } = useTransactionStore();
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>();
-  const [modalMode, setModalMode] = useState<'edit' | 'delete'>('edit');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [groupedTransactions, setGroupedTransactions] = useState<GroupedTransactions>({});
+  const [mounted, setMounted] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (transactions.length === 0) {
+      loadTransactions().then((data) => {
+        if (data) setTransactions(data);
+      });
+    }
+  }, [transactions.length, setTransactions]);
+
+  useEffect(() => {
+    const grouped = transactions.reduce((acc: GroupedTransactions, transaction) => {
+      const date = transaction.날짜;
+      if (!acc[date]) {
+        acc[date] = {
+          transactions: [],
+          totalIncome: 0,
+          totalExpense: 0,
+        };
+      }
+      acc[date].transactions.push(transaction);
+      if (transaction.유형 === '수입') {
+        acc[date].totalIncome += transaction.금액;
+      } else {
+        acc[date].totalExpense += transaction.금액;
+      }
+      return acc;
+    }, {});
+
+    const sortedGrouped: GroupedTransactions = {};
+    Object.keys(grouped)
+      .sort((a, b) => b.localeCompare(a))
+      .forEach((date) => {
+        sortedGrouped[date] = grouped[date];
+      });
+
+    setGroupedTransactions(sortedGrouped);
+  }, [transactions]);
 
   if (!mounted) {
     return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-20 bg-gray-700 rounded-md" />
-        <div className="h-20 bg-gray-700 rounded-md" />
-        <div className="h-20 bg-gray-700 rounded-md" />
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-300"></div>
       </div>
     );
   }
 
-  const groupTransactionsByDate = (transactions: Transaction[]): DateGroup[] => {
-    const groups: { [key: string]: Transaction[] } = {};
-    
-    transactions.forEach(transaction => {
-      try {
-        const transactionDate = new Date(transaction.date);
-        if (isNaN(transactionDate.getTime())) {
-          console.error('Invalid date:', transaction.date);
-          return;
-        }
-        
-        const date = format(transactionDate, 'yyyy년 MM월 dd일');
-        if (!groups[date]) {
-          groups[date] = [];
-        }
-        groups[date].push(transaction);
-      } catch (error) {
-        console.error('Date processing error:', error);
-      }
-    });
-
-    return Object.entries(groups).map(([date, transactions]) => {
-      try {
-        const firstTransaction = transactions[0];
-        const transactionDate = new Date(firstTransaction.date);
-        const dayOfWeek = format(transactionDate, 'EEEE', { locale: ko });
-        
-        const totalAmount = transactions.reduce(
-          (acc, curr) => {
-            if (curr.type === '수입') {
-              acc.income += curr.amount;
-            } else {
-              acc.expense += curr.amount;
-            }
-            return acc;
-          },
-          { income: 0, expense: 0 }
-        );
-        
-        return { date, dayOfWeek, transactions, totalAmount };
-      } catch (error) {
-        console.error('Date group processing error:', error);
-        return {
-          date,
-          dayOfWeek: '요일 정보 없음',
-          transactions,
-          totalAmount: { income: 0, expense: 0 }
-        };
-      }
-    }).sort((a, b) => {
-      try {
-        const dateA = new Date(a.transactions[0].date);
-        const dateB = new Date(b.transactions[0].date);
-        return dateB.getTime() - dateA.getTime();
-      } catch (error) {
-        console.error('Date sorting error:', error);
-        return 0;
-      }
-    });
-  };
+  const totalPages = Math.ceil(Object.keys(groupedTransactions).length / ITEMS_PER_PAGE);
+  const currentDates = Object.keys(groupedTransactions)
+    .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleEdit = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
-    setModalMode('edit');
-    setIsModalOpen(true);
+    setIsEditModalOpen(true);
   };
 
   const handleDelete = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
-    setModalMode('delete');
-    setIsModalOpen(true);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleSave = (updatedTransaction: Transaction) => {
+    updateTransaction(updatedTransaction);
+    setIsEditModalOpen(false);
+    setSelectedTransaction(null);
   };
 
   const handleConfirmDelete = () => {
     if (selectedTransaction) {
       deleteTransaction(selectedTransaction);
-      setIsModalOpen(false);
-      toast.success('거래가 삭제되었습니다');
+      setIsDeleteModalOpen(false);
+      setSelectedTransaction(null);
     }
   };
 
-  const handleConfirmEdit = (updatedTransaction: Transaction) => {
-    updateTransaction(updatedTransaction);
-    setIsModalOpen(false);
-    toast.success('거래가 수정되었습니다');
-  };
-
-  const sortedTransactions = [...transactions].sort((a, b) => {
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    return dateB.getTime() - dateA.getTime();
-  });
-
-  const totalPages = Math.ceil(sortedTransactions.length / ITEMS_PER_PAGE);
-  const paginatedTransactions = sortedTransactions.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
-  const groupedTransactions = groupTransactionsByDate(paginatedTransactions);
+  if (transactions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400">거래 내역이 없습니다.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="overflow-hidden bg-gray-900 shadow sm:rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          {groupedTransactions.length > 0 ? (
-            groupedTransactions.map(({ date, dayOfWeek, transactions, totalAmount }) => (
-              <div key={date} className="space-y-2">
-                <DateDivider
-                  date={date}
-                  dayOfWeek={dayOfWeek}
-                  transactions={transactions}
-                  totalAmount={totalAmount}
-                />
-                <div className="space-y-2">
-                  {transactions.map(transaction => (
-                    <div
-                      key={transaction.id}
-                      className="bg-gray-800 p-4 rounded-lg flex justify-between items-center"
-                    >
-                      <div className="flex-1">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm text-gray-400">
-                            {transaction.관} &gt; {transaction.항} &gt; {transaction.목}
-                          </span>
-                          <span className={`font-medium ${
-                            transaction.type === '수입' ? 'text-blue-400' : 'text-red-400'
-                          }`}>
-                            {transaction.type === '수입' ? '+' : '-'}{formatNumber(transaction.amount)}원
-                          </span>
-                        </div>
-                        {transaction.memo && (
-                          <p className="text-sm text-gray-300">{transaction.memo}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => handleEdit(transaction)}
-                          className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(transaction)}
-                          className="p-2 text-gray-400 hover:text-red-400 transition-colors"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+    <>
+      <div className="space-y-4">
+        {currentDates.map((date) => (
+          <div key={date} className="bg-white rounded-lg shadow p-4">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-semibold">
+                {format(new Date(date.replace(/\./g, '-')), 'yyyy년 M월 d일 (EEEE)', { locale: ko })}
+              </h3>
+              <div className="text-sm">
+                <span className="text-blue-500 mr-4">수입: {groupedTransactions[date].totalIncome.toLocaleString()}원</span>
+                <span className="text-red-500">지출: {groupedTransactions[date].totalExpense.toLocaleString()}원</span>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-8 text-gray-400">
-              거래 내역이 없습니다.
             </div>
-          )}
-        </div>
+            <div className="divide-y">
+              {groupedTransactions[date].transactions.map((transaction) => (
+                <div key={transaction.id} className="py-2 flex justify-between items-center">
+                  <div>
+                    <span className={`inline-block px-2 py-1 text-xs rounded ${
+                      transaction.유형 === '수입' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
+                    } mr-2`}>
+                      {transaction.유형}
+                    </span>
+                    <span className="text-gray-900">{transaction.관} &gt; {transaction.항} &gt; {transaction.목}</span>
+                    {transaction.메모 && (
+                      <span className="text-gray-500 text-sm ml-2">({transaction.메모})</span>
+                    )}
+                  </div>
+                  <div className="flex items-center">
+                    <span className={`font-medium ${
+                      transaction.유형 === '수입' ? 'text-blue-600' : 'text-red-600'
+                    } mr-4`}>
+                      {transaction.금액.toLocaleString()}원
+                    </span>
+                    <button
+                      onClick={() => handleEdit(transaction)}
+                      className="p-1 text-gray-500 hover:text-blue-500 mr-1"
+                    >
+                      <FiEdit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(transaction)}
+                      className="p-1 text-gray-500 hover:text-red-500"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        
+        {totalPages > 1 && (
+          <div className="flex justify-center space-x-2 mt-4">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 rounded ${
+                  currentPage === page
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {totalPages > 1 && (
-        <div className="mt-4">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
-      )}
-
       <TransactionModal
-        isOpen={isModalOpen}
+        isOpen={isEditModalOpen}
         onClose={() => {
-          setIsModalOpen(false);
-          setSelectedTransaction(undefined);
+          setIsEditModalOpen(false);
+          setSelectedTransaction(null);
         }}
-        mode={modalMode}
         transaction={selectedTransaction}
-        onConfirm={modalMode === 'edit' ? handleConfirmEdit : handleConfirmDelete}
+        onSave={handleSave}
       />
-    </div>
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedTransaction(null);
+        }}
+        transaction={selectedTransaction}
+        onConfirm={handleConfirmDelete}
+      />
+    </>
   );
 };
 

@@ -2,13 +2,13 @@ import { create } from 'zustand';
 
 export interface Transaction {
   id: string;
-  date: string;
-  type: "수입" | "지출";
+  날짜: string;
+  유형: "수입" | "지출";
   관: string;
   항: string;
   목: string;
-  amount: number;
-  memo?: string;
+  금액: number;
+  메모?: string;
 }
 
 interface TransactionState {

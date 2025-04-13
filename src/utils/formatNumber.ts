@@ -3,6 +3,7 @@
  * @param value - 포맷팅할 숫자
  * @returns 포맷팅된 문자열
  */
-export const formatNumber = (value: number): string => {
-  return value.toLocaleString('ko-KR');
+export const formatNumber = (value: number | string): string => {
+  const numValue = typeof value === 'string' ? parseInt(value.replace(/[^0-9]/g, '')) : value;
+  return numValue.toLocaleString('ko-KR');
 }; 

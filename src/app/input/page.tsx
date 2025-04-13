@@ -1,6 +1,6 @@
 "use client";
 
-import PageTitle from "@/components/PageTitle";
+import PageTitle from "@/components/common/PageTitle";
 import { IoWallet } from "react-icons/io5";
 import { IoAddCircle } from "react-icons/io5";
 import { FaListAlt } from "react-icons/fa";

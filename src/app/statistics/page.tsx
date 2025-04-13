@@ -188,19 +188,6 @@ export default function StatisticsPage() {
           </div>
         </div>
       </div>
-
-      <hr className="border-gray-700 my-8" />
-
-      {/* 카테고리별 통계분석 */}
-      <div className="bg-gray-800/50 rounded-xl p-6 border border-white/10">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-500/10">
-            <FaChartBar className="w-6 h-6 text-emerald-400" />
-          </div>
-          <h3 className="text-xl font-semibold text-white">카테고리별 통계분석</h3>
-        </div>
-        <CategoryAnalysis />
-      </div>
     </div>
   );
 } 

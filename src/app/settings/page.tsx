@@ -1,7 +1,7 @@
 "use client";
 
 import { MdSettings } from "react-icons/md";
-import PageTitle from "@/components/PageTitle";
+import PageTitle from "@/components/common/PageTitle";
 import CategoryManager from "@/components/category/CategoryManager";
 import { IoSettings } from "react-icons/io5";
 import { MdDataUsage, MdDelete, MdWarning } from "react-icons/md";

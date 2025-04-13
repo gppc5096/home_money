@@ -1,3 +1,25 @@
+# 커밋 히스토리
+
+### [11] 커밋: 거래통계 - 카테고리별 통계분석 차트 개선 및 레이아웃 최적화
+- 📅 날짜: 2024-04-13
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: 844a382
+- 📝 변경된 파일:
+  - src/components/statistics/CategoryAnalysis.tsx
+  - src/components/statistics/HeatmapCalendar.tsx
+  - src/components/statistics/PeriodicalAnalysis.tsx
+  - src/utils/formatUtils.ts
+  - src/app/statistics/page.tsx
+- 💡 주요 변경사항:
+  - 카테고리별 통계분석 컴포넌트 개선
+    - 수입/지출 파이 차트 시각화 개선
+    - 카테고리별 금액 및 비율 자동 계산
+    - 호버 시 상세 정보 표시 기능 추가
+  - 통계 페이지 레이아웃 최적화
+    - 재무현황, 상세통계, 기간별통계, 카테고리별통계 섹션 구조화
+    - 다크모드 컬러 스킴 적용
+    - 반응형 레이아웃 구현
+
 ### [10] 커밋: 신규 저장 데이터 미분류 문제 해결-거래입력 페이지
 - 📅 날짜: 2025-04-13 11:30:25
 - 👤 작성자: Jongchoon Na

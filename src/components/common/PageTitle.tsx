@@ -5,28 +5,19 @@ import { IconType } from 'react-icons';
 
 interface PageTitleProps {
   title: string;
-  description?: string;
-  icon?: IconType;
+  description: string;
+  icon: IconType;
   iconColor?: string;
 }
 
-const PageTitle: React.FC<PageTitleProps> = ({
-  title,
-  description,
-  icon: Icon,
-  iconColor = 'text-blue-500'
-}) => {
+export default function PageTitle({ title, description, icon: Icon, iconColor = 'text-gray-500' }: PageTitleProps) {
   return (
-    <div className="mb-8">
-      <div className="flex items-center gap-3 mb-2">
-        {Icon && <Icon className={`h-8 w-8 ${iconColor}`} />}
-        <h1 className="text-2xl font-bold text-white">{title}</h1>
+    <div className="border-2 border-gray-600/30 rounded-[10px] p-6 text-center mb-8">
+      <div className="flex flex-col items-center justify-center gap-2">
+        <Icon className={`h-8 w-8 ${iconColor}`} />
+        <h1 className="text-2xl font-bold text-gray-100">{title}</h1>
+        <p className="text-gray-400 text-sm">{description}</p>
       </div>
-      {description && (
-        <p className="text-gray-400">{description}</p>
-      )}
     </div>
   );
-};
-
-export default PageTitle; 
+} 

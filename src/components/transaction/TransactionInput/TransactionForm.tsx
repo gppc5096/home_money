@@ -6,6 +6,7 @@ import { formatAmount, parseAmount } from "@/utils/formatters";
 import { useTransactionStore } from "@/store/transactionStore";
 import toast from "react-hot-toast";
 import { format } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 
 interface FormData {
   date: string;
@@ -197,25 +198,37 @@ export default function TransactionForm() {
     }
 
     try {
+      console.log('=== 신규 거래 저장 프로세스 시작 ===');
+      
+      // 날짜 형식 변환 (YYYY-MM-DD -> YYYY.MM.DD)
+      const normalizedDate = formData.date.split('-').join('.');
+      
       const newTransaction = {
-        id: Date.now().toString(),
-        date: formData.date,
-        type: formData.유형,
-        관: formData.관,
-        항: formData.항,
-        목: formData.목,
-        amount: parseInt(formData.amount),
-        memo: formData.memo
+        id: uuidv4(),  // UUID 사용
+        날짜: normalizedDate,
+        유형: formData.유형,
+        관: formData.관.trim(),
+        항: formData.항.trim(),
+        목: formData.목.trim(),
+        금액: parseInt(formData.amount),
+        메모: formData.memo.trim() || '-'
       };
 
+      console.log('정규화된 데이터:', newTransaction);
+      
       await addTransaction(newTransaction);
+      console.log('거래 저장 완료');
+      
       toast.success('거래가 추가되었습니다.');
       
       // 폼 초기화
       setFormData(initialFormData);
       setErrors({});
+
+      console.log('=== 신규 거래 저장 프로세스 완료 ===');
     } catch (error) {
       console.error('거래 추가 실패:', error);
+      console.error('실패 시 데이터 상태:', { formData });
       toast.error('거래 추가에 실패했습니다.');
     }
   };

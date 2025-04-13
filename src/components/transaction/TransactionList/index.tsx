@@ -1,100 +1,92 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import TransactionModal from './TransactionModal';
-import Pagination from './Pagination';
 import { useTransactionStore } from '@/store/transactionStore';
-import { toast } from 'react-hot-toast';
-import DateDivider from './DateDivider';
-import { formatNumber } from '@/utils/formatNumber';
 import DeleteConfirmModal from './DeleteConfirmModal';
 import { loadTransactions } from '@/utils/transactionUtils';
-import TransactionItem from './TransactionItem';
-import { FiEdit2, FiTrash2 } from 'react-icons/fi';
-
-interface GroupedTransactions {
-  [date: string]: {
-    transactions: Transaction[];
-    totalIncome: number;
-    totalExpense: number;
-  };
-}
 
 const ITEMS_PER_PAGE = 10;
 
-const TransactionList = () => {
+const TransactionList: React.FC = () => {
   const { transactions, setTransactions, updateTransaction, deleteTransaction } = useTransactionStore();
   const [currentPage, setCurrentPage] = useState(1);
-  const [groupedTransactions, setGroupedTransactions] = useState<GroupedTransactions>({});
   const [mounted, setMounted] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    if (transactions.length === 0) {
-      loadTransactions().then((data) => {
-        if (data) setTransactions(data);
-      });
-    }
-  }, [transactions.length, setTransactions]);
-
-  useEffect(() => {
-    const grouped = transactions.reduce((acc: GroupedTransactions, transaction) => {
-      const date = transaction.날짜;
-      if (!acc[date]) {
-        acc[date] = {
-          transactions: [],
-          totalIncome: 0,
-          totalExpense: 0,
-        };
+    const initializeData = async () => {
+      if (mounted) return; // 이미 초기화되었다면 실행하지 않음
+      
+      try {
+        setIsLoading(true);
+        setError(null);
+        const loadedTransactions = await loadTransactions();
+        if (loadedTransactions && loadedTransactions.length > 0) {
+          setTransactions(loadedTransactions);
+        }
+      } catch (err) {
+        console.error('Failed to load transactions:', err);
+        setError('거래 내역을 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoading(false);
+        setMounted(true);
       }
-      acc[date].transactions.push(transaction);
-      if (transaction.유형 === '수입') {
-        acc[date].totalIncome += transaction.금액;
-      } else {
-        acc[date].totalExpense += transaction.금액;
-      }
-      return acc;
-    }, {});
+    };
 
-    const sortedGrouped: GroupedTransactions = {};
-    Object.keys(grouped)
-      .sort((a, b) => b.localeCompare(a))
-      .forEach((date) => {
-        sortedGrouped[date] = grouped[date];
-      });
+    initializeData();
+  }, [mounted, setTransactions]); // transactions 제거, mounted 추가
 
-    setGroupedTransactions(sortedGrouped);
-  }, [transactions]);
-
-  if (!mounted) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-300"></div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
-  const totalPages = Math.ceil(Object.keys(groupedTransactions).length / ITEMS_PER_PAGE);
-  const currentDates = Object.keys(groupedTransactions)
-    .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
-  const handleEdit = (transaction: Transaction) => {
+  if (!transactions || transactions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">등록된 거래 내역이 없습니다.</p>
+      </div>
+    );
+  }
+
+  const totalPages = Math.ceil(transactions.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedTransactions = transactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('ko-KR').format(amount);
+  };
+
+  const handleEdit = (transaction) => {
     setSelectedTransaction(transaction);
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = (transaction: Transaction) => {
+  const handleDelete = (transaction) => {
     setSelectedTransaction(transaction);
     setIsDeleteModalOpen(true);
   };
 
-  const handleSave = (updatedTransaction: Transaction) => {
+  const handleSave = (updatedTransaction) => {
     updateTransaction(updatedTransaction);
     setIsEditModalOpen(false);
     setSelectedTransaction(null);
@@ -108,85 +100,79 @@ const TransactionList = () => {
     }
   };
 
-  if (transactions.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-400">거래 내역이 없습니다.</p>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="space-y-4">
-        {currentDates.map((date) => (
-          <div key={date} className="bg-white rounded-lg shadow p-4">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-semibold">
-                {format(new Date(date.replace(/\./g, '-')), 'yyyy년 M월 d일 (EEEE)', { locale: ko })}
-              </h3>
-              <div className="text-sm">
-                <span className="text-blue-500 mr-4">수입: {groupedTransactions[date].totalIncome.toLocaleString()}원</span>
-                <span className="text-red-500">지출: {groupedTransactions[date].totalExpense.toLocaleString()}원</span>
-              </div>
-            </div>
-            <div className="divide-y">
-              {groupedTransactions[date].transactions.map((transaction) => (
-                <div key={transaction.id} className="py-2 flex justify-between items-center">
-                  <div>
-                    <span className={`inline-block px-2 py-1 text-xs rounded ${
-                      transaction.유형 === '수입' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
-                    } mr-2`}>
-                      {transaction.유형}
-                    </span>
-                    <span className="text-gray-900">{transaction.관} &gt; {transaction.항} &gt; {transaction.목}</span>
-                    {transaction.메모 && (
-                      <span className="text-gray-500 text-sm ml-2">({transaction.메모})</span>
-                    )}
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`font-medium ${
-                      transaction.유형 === '수입' ? 'text-blue-600' : 'text-red-600'
-                    } mr-4`}>
-                      {transaction.금액.toLocaleString()}원
-                    </span>
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">유형</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">항</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">목</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">금액</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">메모</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {paginatedTransactions.map((transaction, index) => (
+              <tr key={transaction.id || index} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.날짜}</td>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm ${
+                  transaction.유형 === '수입' ? 'text-blue-600' : 'text-red-600'
+                }`}>
+                  {transaction.유형}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.관}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.항}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.목}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                  {formatAmount(transaction.금액)}원
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {transaction.메모 || '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                  <div className="flex justify-center space-x-2">
                     <button
                       onClick={() => handleEdit(transaction)}
-                      className="p-1 text-gray-500 hover:text-blue-500 mr-1"
+                      className="text-blue-600 hover:text-blue-800"
                     >
-                      <FiEdit2 size={16} />
+                      <FiEdit2 className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(transaction)}
-                      className="p-1 text-gray-500 hover:text-red-500"
+                      className="text-red-600 hover:text-red-800"
                     >
-                      <FiTrash2 size={16} />
+                      <FiTrash2 className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-        
-        {totalPages > 1 && (
-          <div className="flex justify-center space-x-2 mt-4">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-3 py-1 rounded ${
-                  currentPage === page
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                {page}
-              </button>
+                </td>
+              </tr>
             ))}
-          </div>
-        )}
+          </tbody>
+        </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4 space-x-2">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-3 py-1 rounded ${
+                currentPage === page
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+      )}
 
       <TransactionModal
         isOpen={isEditModalOpen}

@@ -163,13 +163,13 @@ const TransactionList: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">유형</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">관</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">항</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">목</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">금액</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">메모</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">작업</th>
+                  <th className="px-6 py-3 text-left text-base font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">유형</th>
+                  <th className="px-6 py-3 text-left text-base font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">관</th>
+                  <th className="px-6 py-3 text-left text-base font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">항</th>
+                  <th className="px-6 py-3 text-left text-base font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">목</th>
+                  <th className="px-6 py-3 text-right text-base font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">금액</th>
+                  <th className="px-6 py-3 text-left text-base font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">메모</th>
+                  <th className="px-6 py-3 text-right text-base font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">작업</th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">

@@ -84,27 +84,35 @@ const TransactionList: React.FC = () => {
     return new Intl.NumberFormat('ko-KR').format(amount);
   };
 
-  const handleEdit = (transaction) => {
+  const handleEdit = (transaction: any) => {
     setSelectedTransaction(transaction);
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = (transaction) => {
+  const handleDelete = (transaction: any) => {
     setSelectedTransaction(transaction);
     setIsDeleteModalOpen(true);
   };
 
-  const handleSave = (updatedTransaction) => {
-    updateTransaction(updatedTransaction);
-    setIsEditModalOpen(false);
-    setSelectedTransaction(null);
+  const handleSave = async (updatedTransaction: any) => {
+    try {
+      await updateTransaction(updatedTransaction);
+      setIsEditModalOpen(false);
+      setSelectedTransaction(null);
+    } catch (error) {
+      console.error('Failed to update transaction:', error);
+    }
   };
 
-  const handleConfirmDelete = () => {
-    if (selectedTransaction) {
-      deleteTransaction(selectedTransaction);
+  const handleConfirmDelete = async () => {
+    if (!selectedTransaction) return;
+    
+    try {
+      await deleteTransaction(selectedTransaction.id);
       setIsDeleteModalOpen(false);
       setSelectedTransaction(null);
+    } catch (error) {
+      console.error('Failed to delete transaction:', error);
     }
   };
 

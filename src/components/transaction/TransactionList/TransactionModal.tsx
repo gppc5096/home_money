@@ -2,22 +2,21 @@
 
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { Transaction } from '@/store/transactionStore';
-import TransactionForm from "../TransactionInput/TransactionForm";
+import TransactionForm from '../TransactionForm';
 
 interface TransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  transaction: Transaction | null;
-  onSave: (transaction: Transaction) => void;
+  transaction?: any;
+  onSave: (data: any) => void;
 }
 
-export default function TransactionModal({
-  isOpen,
-  onClose,
-  transaction,
-  onSave,
-}: TransactionModalProps) {
+export default function TransactionModal({ isOpen, onClose, transaction, onSave }: TransactionModalProps) {
+  const handleSubmit = (data: any) => {
+    onSave(data);
+    onClose();
+  };
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>
@@ -44,21 +43,20 @@ export default function TransactionModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
                   as="h3"
-                  className="text-lg font-medium leading-6 text-gray-900"
+                  className="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4"
                 >
-                  거래 {transaction ? '수정' : '추가'}
+                  {transaction ? '거래 수정' : '거래 추가'}
                 </Dialog.Title>
-                <div className="mt-4">
-                  <TransactionForm
-                    initialData={transaction}
-                    onSubmit={onSave}
-                    onCancel={onClose}
-                    submitLabel={transaction ? "수정" : "추가"}
-                  />
-                </div>
+                
+                <TransactionForm
+                  initialData={transaction}
+                  onSubmit={handleSubmit}
+                  onCancel={onClose}
+                  mode={transaction ? 'edit' : 'create'}
+                />
               </Dialog.Panel>
             </Transition.Child>
           </div>

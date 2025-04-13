@@ -70,14 +70,25 @@ const TransactionList: React.FC = () => {
 
   // 날짜 기준 내림차순 정렬 (최신 날짜가 위로)
   const sortedTransactions = [...transactions].sort((a, b) => {
-    const dateA = new Date(a.날짜.split('.').join('-'));
-    const dateB = new Date(b.날짜.split('.').join('-'));
-    return dateB.getTime() - dateA.getTime();
+    // 날짜가 없는 경우 처리
+    if (!a.날짜) return 1;  // 날짜 없는 항목을 뒤로
+    if (!b.날짜) return -1; // 날짜 없는 항목을 뒤로
+    
+    try {
+      const dateA = new Date(a.날짜.split('.').join('-'));
+      const dateB = new Date(b.날짜.split('.').join('-'));
+      return dateB.getTime() - dateA.getTime();
+    } catch (error) {
+      console.error('날짜 정렬 중 오류:', error, { a: a.날짜, b: b.날짜 });
+      return 0; // 에러 발생 시 순서 유지
+    }
   });
   
   // 날짜별로 거래 내역 그룹화 및 합계 계산
   const groupedTransactions = sortedTransactions.reduce((groups, transaction) => {
-    const date = transaction.날짜;
+    // 날짜가 없는 경우 '미분류' 그룹으로 처리
+    const date = transaction.날짜 || '미분류';
+    
     if (!groups[date]) {
       groups[date] = {
         transactions: [],
@@ -88,9 +99,9 @@ const TransactionList: React.FC = () => {
     
     groups[date].transactions.push(transaction);
     if (transaction.유형 === '수입') {
-      groups[date].수입합계 += transaction.금액;
+      groups[date].수입합계 += Number(transaction.금액) || 0;
     } else {
-      groups[date].지출합계 += transaction.금액;
+      groups[date].지출합계 += Number(transaction.금액) || 0;
     }
     
     return groups;
@@ -98,9 +109,17 @@ const TransactionList: React.FC = () => {
 
   // 페이지네이션을 위한 날짜 그룹 분할
   const dates = Object.keys(groupedTransactions).sort((a, b) => {
-    const dateA = new Date(a.split('.').join('-'));
-    const dateB = new Date(b.split('.').join('-'));
-    return dateB.getTime() - dateA.getTime();
+    if (a === '미분류') return 1;  // 미분류는 항상 마지막으로
+    if (b === '미분류') return -1;
+    
+    try {
+      const dateA = new Date(a.split('.').join('-'));
+      const dateB = new Date(b.split('.').join('-'));
+      return dateB.getTime() - dateA.getTime();
+    } catch (error) {
+      console.error('날짜 그룹 정렬 중 오류:', error, { a, b });
+      return 0; // 에러 발생 시 순서 유지
+    }
   });
 
   const totalPages = Math.ceil(dates.length / ITEMS_PER_PAGE);
@@ -135,7 +154,7 @@ const TransactionList: React.FC = () => {
     if (!selectedTransaction) return;
     
     try {
-      await deleteTransaction(selectedTransaction.id);
+      await deleteTransaction(selectedTransaction);
       setIsDeleteModalOpen(false);
       setSelectedTransaction(null);
     } catch (error) {

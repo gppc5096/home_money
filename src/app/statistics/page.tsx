@@ -12,6 +12,9 @@ import { BiAnalyse } from 'react-icons/bi';
 import { MdOutlineQueryStats, MdTimeline } from 'react-icons/md';
 import { HierarchicalAnalysis } from '@/components/statistics/HierarchicalAnalysis';
 import { SpendingInsights } from '@/components/statistics/SpendingInsights';
+import { HeatmapCalendar } from '@/components/statistics/HeatmapCalendar';
+import { PeriodicalAnalysis } from '@/components/statistics/PeriodicalAnalysis';
+import { CategoryAnalysis } from '@/components/statistics/CategoryAnalysis';
 
 // 카드 스타일 상수 정의
 const CARD_STYLES = {
@@ -180,23 +183,23 @@ export default function StatisticsPage() {
             </div>
             <h3 className="text-xl font-semibold text-white">기간별통계분석</h3>
           </div>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-700/30">
-              <MdTimeline className="w-5 h-5 text-green-400" />
-              <div>
-                <p className="text-sm text-gray-300">월별 추이</p>
-                <p className="text-lg font-medium text-white">데이터 준비중...</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-700/30">
-              <FaWallet className="w-5 h-5 text-rose-400" />
-              <div>
-                <p className="text-sm text-gray-300">연간 분석</p>
-                <p className="text-lg font-medium text-white">데이터 준비중...</p>
-              </div>
-            </div>
+          <div className="space-y-6">
+            <PeriodicalAnalysis />
           </div>
         </div>
+      </div>
+
+      <hr className="border-gray-700 my-8" />
+
+      {/* 카테고리별 통계분석 */}
+      <div className="bg-gray-800/50 rounded-xl p-6 border border-white/10">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-500/10">
+            <FaChartBar className="w-6 h-6 text-emerald-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-white">카테고리별 통계분석</h3>
+        </div>
+        <CategoryAnalysis />
       </div>
     </div>
   );

@@ -1,3 +1,14 @@
+### [10] 커밋: 신규 저장 데이터 미분류 문제 해결-거래입력 페이지
+- 📅 날짜: 2025-04-13 11:30:25
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: b3cf37c
+- 📝 변경된 파일:
+  - src/components/transaction/TransactionInput/TransactionForm.tsx
+- 💡 주요 변경사항:
+  - 데이터 형식 통일 (날짜: YYYY.MM.DD, 필드명 한글화)
+  - 데이터 정규화 처리 (trim, 기본값 설정)
+  - 로깅 시스템 추가
+
 ### [3] 커밋: 'use client' 지시어 추가로 React hooks 사용 가능하도록 수정
 - 📅 날짜: 2025-04-12 10:51:15
 - 👤 작성자: Jongchoon Na
@@ -80,3 +91,19 @@
   - README.md
   - src/app/page.tsx
   - src/app/statistics/page.tsx
+
+### 2024-03-26
+#### feat: 거래통계 - 상세통계분석 로직 구현 [47be712]
+- 계층형 카테고리 분석 컴포넌트 구현
+  - `src/components/statistics/HierarchicalAnalysis.tsx`
+  - 대분류/중분류별 금액 및 비율 계산
+  - 프로그레스 바를 통한 시각화
+  - 접기/펼치기 기능 구현
+- 지출 패턴 분석 컴포넌트 구현
+  - `src/components/statistics/SpendingInsights.tsx`
+  - 전월 대비 지출 증감 분석
+  - 카테고리별 지출 경고
+  - 지출 예측 기능
+- 통계 페이지 레이아웃 개선
+  - `src/app/statistics/page.tsx`
+  - 상세통계분석 섹션에 새로운 컴포넌트 통합

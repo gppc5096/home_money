@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import { MdSettings } from "react-icons/md";
 import PageTitle from "@/components/common/PageTitle";
 import CategoryManager from "@/components/category/CategoryManager";
@@ -8,63 +9,21 @@ import { MdDataUsage, MdDelete, MdWarning } from "react-icons/md";
 import { FaFileExport, FaFileImport, FaArrowUp } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
 import { useCategoryStore } from "@/store/categoryStore";
+import { useTransactionStore } from "@/store/transactionStore";
 import { exportCategories, importCategories } from "@/utils/categoryUtils";
+import { toast } from 'react-hot-toast';
 
 export default function SettingsPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { categories, setCategories } = useCategoryStore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { transactions, setTransactions } = useTransactionStore();
+  const categoryFileInputRef = useRef<HTMLInputElement>(null);
+  const transactionFileInputRef = useRef<HTMLInputElement>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-
-  // 메시지 포트 에러 핸들링
-  useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      // 메시지 포트 관련 오류 처리
-      if (
-        event.message?.toLowerCase().includes('message port closed') ||
-        event.message?.toLowerCase().includes('runtime.lasterror') ||
-        event.message?.toLowerCase().includes('the message port closed') ||
-        event.message?.toLowerCase().includes('extension context invalidated')
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
-      }
-    };
-
-    // 크롬 확장프로그램 관련 오류 처리
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      if (
-        event.reason?.message?.toLowerCase().includes('message port closed') ||
-        event.reason?.message?.toLowerCase().includes('runtime.lasterror') ||
-        event.reason?.message?.toLowerCase().includes('extension context invalidated')
-      ) {
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
-      }
-    };
-
-    // 크롬 확장프로그램 연결 해제 처리
-    const handleDisconnect = () => {
-      return false;
-    };
-
-    window.addEventListener('error', handleError, true);
-    window.addEventListener('unhandledrejection', handleUnhandledRejection, true);
-    window.addEventListener('disconnect', handleDisconnect, true);
-    
-    return () => {
-      window.removeEventListener('error', handleError, true);
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection, true);
-      window.removeEventListener('disconnect', handleDisconnect, true);
-    };
-  }, []);
 
   // 스크롤 이벤트 핸들링
   useEffect(() => {
     const handleScroll = () => {
-      // 100px 이상 스크롤되면 버튼 표시
       setShowScrollTop(window.scrollY > 100);
     };
 
@@ -79,9 +38,97 @@ export default function SettingsPage() {
     });
   };
 
+  // CSV 파일로 거래내역 내보내기
+  const exportTransactionsToCSV = () => {
+    try {
+      // CSV 헤더 생성
+      const headers = ['날짜', '관', '항', '목', '금액', '메모'];
+      
+      // 데이터를 CSV 형식으로 변환
+      const csvData = transactions.map(transaction => [
+        transaction.날짜,
+        transaction.관 || '',
+        transaction.항 || '',
+        transaction.목 || '',
+        transaction.금액?.toString() || '0',
+        transaction.메모 || ''
+      ]);
+
+      // 헤더와 데이터 결합
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => row.join(','))
+      ].join('\n');
+
+      // Blob 생성 및 다운로드
+      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `가계부_거래내역_${new Date().toLocaleDateString()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success('거래내역이 성공적으로 내보내졌습니다.');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('거래내역 내보내기에 실패했습니다.');
+    }
+  };
+
+  // CSV 파일에서 거래내역 가져오기
+  const importTransactionsFromCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const rows = text.split('\n');
+      const headers = rows[0].split(',');
+
+      const importedData = rows.slice(1)
+        .filter(row => row.trim() !== '')
+        .map((row, index) => {
+          const values = row.split(',');
+          const type = values[1] === '수입' ? '수입' as const : '지출' as const;
+          return {
+            id: `imported-${Date.now()}-${index}`,
+            날짜: values[0],
+            관: values[1],
+            항: values[2],
+            목: values[3],
+            금액: parseInt(values[4], 10),
+            메모: values[5],
+            유형: type
+          };
+        })
+        .filter(transaction => 
+          transaction.날짜 && 
+          !isNaN(transaction.금액) && 
+          transaction.금액 !== 0
+        );
+
+      if (importedData.length === 0) {
+        throw new Error('유효한 거래내역이 없습니다.');
+      }
+
+      setTransactions(importedData);
+      toast.success('거래내역이 성공적으로 가져와졌습니다.');
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('거래내역 가져오기에 실패했습니다.');
+    }
+
+    // 파일 입력 초기화
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8 p-8">
-      <PageTitle
+      <PageTitle 
         title="거래 설정"
         description="카테고리와 거래 관련 설정을 관리합니다."
         icon={MdSettings}
@@ -100,11 +147,24 @@ export default function SettingsPage() {
           <div className="bg-gray-800 rounded-lg p-8">
             <h3 className="text-lg font-medium text-white mb-4">거래내역 관리</h3>
             <div className="flex justify-between items-center">
-              <button className="flex items-center gap-2 text-emerald-300 hover:text-emerald-200 transition-colors px-4 py-2">
+              <button 
+                onClick={exportTransactionsToCSV}
+                className="flex items-center gap-2 text-emerald-300 hover:text-emerald-200 transition-colors px-4 py-2"
+              >
                 <FaFileExport className="h-5 w-5" />
                 <span>내보내기</span>
               </button>
-              <button className="flex items-center gap-2 text-sky-300 hover:text-sky-200 transition-colors px-4 py-2">
+              <input
+                type="file"
+                ref={transactionFileInputRef}
+                onChange={importTransactionsFromCSV}
+                className="hidden"
+                accept=".csv"
+              />
+              <button 
+                onClick={() => transactionFileInputRef.current?.click()}
+                className="flex items-center gap-2 text-sky-300 hover:text-sky-200 transition-colors px-4 py-2"
+              >
                 <FaFileImport className="h-5 w-5" />
                 <span>가져오기</span>
               </button>
@@ -124,16 +184,16 @@ export default function SettingsPage() {
               </button>
               <input
                 type="file"
-                ref={fileInputRef}
+                ref={categoryFileInputRef}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
                     try {
                       const importedCategories = await importCategories(file);
                       setCategories(importedCategories);
-                      alert('카테고리를 성공적으로 가져왔습니다.');
+                      toast.success('카테고리를 성공적으로 가져왔습니다.');
                     } catch (error) {
-                      alert(error instanceof Error ? error.message : '카테고리를 가져오는 중 오류가 발생했습니다.');
+                      toast.error(error instanceof Error ? error.message : '카테고리를 가져오는 중 오류가 발생했습니다.');
                     }
                     e.target.value = ''; // Reset file input
                   }
@@ -142,7 +202,7 @@ export default function SettingsPage() {
                 accept=".csv"
               />
               <button 
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => categoryFileInputRef.current?.click()}
                 className="flex items-center gap-2 text-sky-300 hover:text-sky-200 transition-colors px-4 py-2"
               >
                 <FaFileImport className="h-5 w-5" />
@@ -191,10 +251,11 @@ export default function SettingsPage() {
                         try {
                           localStorage.clear();
                           setCategories([]);
+                          setTransactions([]);
                           setShowResetConfirm(false);
-                          alert('모든 데이터가 성공적으로 초기화되었습니다.');
+                          toast.success('모든 데이터가 성공적으로 초기화되었습니다.');
                         } catch (error) {
-                          alert('데이터 초기화 중 오류가 발생했습니다.');
+                          toast.error('데이터 초기화 중 오류가 발생했습니다.');
                           console.error('초기화 오류:', error);
                         }
                       }}

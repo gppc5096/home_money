@@ -1,5 +1,15 @@
 # 커밋 히스토리
 
+### [23] 커밋: docs: 개발 명세서 추가
+- 📅 날짜: 2025-04-14
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: cdd8e0e
+- 📝 변경된 파일:
+  - docs/development-speification.md
+- 💡 주요 변경사항:
+    - docs: 개발 명세서 추가
+
+
 ### [22] 커밋: feat: Reorganize settings page sections and improve UI - Reorder sections (Category/Data/Password Management, Data Init) - UI improvements (spacing, buttons, sections, icons)
 - 📅 날짜: 2025-04-14
 - 👤 작성자: Jongchoon Na

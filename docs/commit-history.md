@@ -1,5 +1,15 @@
 # 커밋 히스토리
 
+### [16] 커밋: refactor: 카테고리별 계층분석 제목을 심층분석으로 변경
+- 📅 날짜: 2025-04-14
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: 9f50b3d
+- 📝 변경된 파일:
+  - src/components/statistics/HierarchicalAnalysis.tsx
+- 💡 주요 변경사항:
+    - refactor: 카테고리별 계층분석 제목을 심층분석으로 변경
+
+
 ### [15] 커밋: refactor: SpendingInsights를 SpendingPatternAnalysis로 대체하고 통계 페이지 구조 개선
 - 📅 날짜: 2025-04-14
 - 👤 작성자: Jongchoon Na

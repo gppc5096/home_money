@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTransactionStore } from '@/store/transactionStore';
+import { FaChartBar } from 'react-icons/fa';
 
 interface CategoryData {
   amount: number;
@@ -108,7 +109,12 @@ export const HierarchicalAnalysis: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-white mb-4">계층형 카테고리 분석</h3>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500/10">
+          <FaChartBar className="w-6 h-6 text-blue-400" />
+        </div>
+        <h3 className="text-xl font-semibold text-white">카테고리별 심층분석</h3>
+      </div>
       <div className="space-y-2">
         {Object.entries(hierarchicalData).map(([category, data]) => (
           <CategoryGroup key={category} name={category} data={data} />

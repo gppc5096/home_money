@@ -1,5 +1,16 @@
 # 커밋 히스토리
 
+### [21] 커밋: refactor: 네비게이션 바에서 로그인 메뉴 제거
+- 📅 날짜: 2025-04-14
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: 2b69530
+- 📝 변경된 파일:
+  - src/components/common/Menubar.tsx
+  - src/components/common/Navbar.tsx
+- 💡 주요 변경사항:
+    - refactor: 네비게이션 바에서 로그인 메뉴 제거
+
+
 ### [20] 커밋: feat: 데이터 관리 기능 구현 - 거래내역/카테고리 데이터 가져오기/내보내기 기능, CSV 형식 지원, 데이터 유효성 검사, Zustand persist 미들웨어 적용
 - 📅 날짜: 2025-04-14
 - 👤 작성자: Jongchoon Na

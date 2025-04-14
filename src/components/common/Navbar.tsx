@@ -10,7 +10,6 @@ export default function Navbar() {
     { href: '/input', label: '거래입력' },
     { href: '/statistics', label: '거래통계' },
     { href: '/settings', label: '거래설정' },
-    { href: '/login', label: '로그인' },
   ];
 
   return (

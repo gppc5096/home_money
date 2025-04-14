@@ -65,7 +65,15 @@ export default function SettingsPage() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `거래내역_내보내기_${new Date().toLocaleDateString()}.csv`;
+      
+      // 날짜 형식 포맷팅
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const formattedDate = `${year}.${month}.${day}`;
+      
+      link.download = `거래내역_내보내기_${formattedDate}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

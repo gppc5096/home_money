@@ -1,5 +1,16 @@
 # 커밋 히스토리
 
+### [19] 커밋: refactor: 내보내기 파일명의 날짜 형식을 yyyy.MM.dd로 통일
+- 📅 날짜: 2025-04-14
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: 4509172
+- 📝 변경된 파일:
+  - src/app/settings/page.tsx
+  - src/utils/categoryUtils.ts
+- 💡 주요 변경사항:
+    - refactor: 내보내기 파일명의 날짜 형식을 yyyy.MM.dd로 통일
+
+
 ### [18] 커밋: refactor: 내보내기 파일명 형식 통일
 - 📅 날짜: 2025-04-14
 - 👤 작성자: Jongchoon Na

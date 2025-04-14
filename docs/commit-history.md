@@ -1,5 +1,48 @@
 # 커밋 히스토리
 
+### [10] 커밋: feat: Install Git Hook for automatic commit-history.md updates
+- 📅 날짜: 2025-04-14
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: cd61e41
+- 📝 변경된 파일:
+  - docs/commit-history.md
+  - src/app/input/page.tsx
+- 💡 주요 변경사항:
+    - feat: Install Git Hook for automatic commit-history.md updates
+
+
+### [13] 커밋: PageTitle 컴포넌트 스타일 일괄 수정
+- 📅 날짜: 2024-03-27
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: e28959b
+- 📝 변경된 파일:
+  - src/components/common/PageTitle.tsx
+- 💡 주요 변경사항:
+  - 모든 페이지의 PageTitle 컴포넌트 스타일 통일
+    - 테두리 둥글기 45px로 수정
+    - 간격과 패딩 최적화
+    - 텍스트 중앙 정렬 적용
+  - 적용 페이지
+    - 거래입력
+    - 거래통계
+    - 거래설정
+
+### [12] 커밋: 카테고리별 필터분석 컴포넌트 타이틀 섹션 추가
+- 📅 날짜: 2024-04-13
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: 545039d
+- 📝 변경된 파일:
+  - src/components/statistics/CategoryFilterAnalysis.tsx
+- 💡 주요 변경사항:
+  - 컴포넌트 타이틀 섹션 구현
+    - '카테고리별 계층분석' 타이틀 추가
+    - FaLayerGroup 아이콘 통합 (파란색)
+    - 타이틀 텍스트 스타일링 적용
+  - 컴포넌트 UI 개선
+    - 배경색 및 투명도 조정
+    - 패딩 및 간격 최적화
+    - 라운드 처리된 모서리 적용
+
 ### [11] 커밋: 거래통계 - 카테고리별 통계분석 차트 개선 및 레이아웃 최적화
 - 📅 날짜: 2024-04-13
 - 👤 작성자: Jongchoon Na
@@ -30,13 +73,6 @@
   - 데이터 형식 통일 (날짜: YYYY.MM.DD, 필드명 한글화)
   - 데이터 정규화 처리 (trim, 기본값 설정)
   - 로깅 시스템 추가
-
-### [3] 커밋: 'use client' 지시어 추가로 React hooks 사용 가능하도록 수정
-- 📅 날짜: 2025-04-12 10:51:15
-- 👤 작성자: Jongchoon Na
-- 🔍 커밋 해시: c9bc0c20b279002fc9d1b6055e6599f8d96eb259
-- 📝 변경된 파일:
-  - src/app/settings/page.tsx
 
 ### [9] 커밋: 거래목록 데이터 영구 저장 기능 구현
 - 📅 날짜: 2025-04-12 16:31:46
@@ -105,6 +141,13 @@
   - src/components/category/CategoryManager.tsx
   - src/components/category/CategoryTree.tsx
 
+### [3] 커밋: 'use client' 지시어 추가로 React hooks 사용 가능하도록 수정
+- 📅 날짜: 2025-04-12 10:51:15
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: c9bc0c20b279002fc9d1b6055e6599f8d96eb259
+- 📝 변경된 파일:
+  - src/app/settings/page.tsx
+
 ### [2] 커밋: 통계 페이지 컴포넌트 간격 gap-17로 통일
 - 📅 날짜: 2025-04-12 10:37:08
 - 👤 작성자: Jongchoon Na
@@ -114,18 +157,3 @@
   - src/app/page.tsx
   - src/app/statistics/page.tsx
 
-### 2024-03-26
-#### feat: 거래통계 - 상세통계분석 로직 구현 [47be712]
-- 계층형 카테고리 분석 컴포넌트 구현
-  - `src/components/statistics/HierarchicalAnalysis.tsx`
-  - 대분류/중분류별 금액 및 비율 계산
-  - 프로그레스 바를 통한 시각화
-  - 접기/펼치기 기능 구현
-- 지출 패턴 분석 컴포넌트 구현
-  - `src/components/statistics/SpendingInsights.tsx`
-  - 전월 대비 지출 증감 분석
-  - 카테고리별 지출 경고
-  - 지출 예측 기능
-- 통계 페이지 레이아웃 개선
-  - `src/app/statistics/page.tsx`
-  - 상세통계분석 섹션에 새로운 컴포넌트 통합

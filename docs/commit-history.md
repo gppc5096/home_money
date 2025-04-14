@@ -1,5 +1,34 @@
 # 커밋 히스토리
 
+### [20] 커밋: feat: 데이터 관리 기능 구현 - 거래내역/카테고리 데이터 가져오기/내보내기 기능, CSV 형식 지원, 데이터 유효성 검사, Zustand persist 미들웨어 적용
+- 📅 날짜: 2025-04-14
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: 72d2f7a
+- 📝 변경된 파일:
+  - "public/2-\352\260\200\352\263\204\353\266\200_\352\261\260\353\236\230\353\202\264\354\227\255_2025.
+  - 4.
+  - 14..csv"
+  - "public/2-\354\271\264\355\205\214\352\263\240\353\246\254_\353\202\264\353\263\264\353\202\264\352\270\260_2025.
+  - 4.
+  - 14.csv"
+  - src/app/input/page.tsx
+  - src/app/login/page.tsx
+  - src/app/page.tsx
+  - src/app/settings/page.tsx
+  - src/app/statistics/page.tsx
+  - src/components/auth/ProtectedRoute.tsx
+  - src/components/common/Menubar.tsx
+  - src/components/common/ProtectedRoute.tsx
+  - src/components/settings/CategoryManager.tsx
+  - src/components/settings/PasswordManager.tsx
+  - src/store/authStore.ts
+  - src/store/categoryStore.ts
+  - src/store/transactionStore.ts
+  - src/utils/categoryUtils.ts
+- 💡 주요 변경사항:
+    - feat: 데이터 관리 기능 구현 - 거래내역/카테고리 데이터 가져오기/내보내기 기능, CSV 형식 지원, 데이터 유효성 검사, Zustand persist 미들웨어 적용
+
+
 ### [19] 커밋: refactor: 내보내기 파일명의 날짜 형식을 yyyy.MM.dd로 통일
 - 📅 날짜: 2025-04-14
 - 👤 작성자: Jongchoon Na

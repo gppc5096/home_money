@@ -13,9 +13,8 @@ import { MdOutlineQueryStats, MdTimeline } from 'react-icons/md';
 import { HierarchicalAnalysis } from '@/components/statistics/HierarchicalAnalysis';
 import { HeatmapCalendar } from '@/components/statistics/HeatmapCalendar';
 import { PeriodicalAnalysis } from '@/components/statistics/PeriodicalAnalysis';
-import { PeriodFilterAnalysis } from '@/components/statistics/PeriodFilterAnalysis';
 import { CategoryFilterAnalysis } from '@/components/statistics/CategoryFilterAnalysis';
-import { SpendingPatternAnalysis } from '@/components/statistics/SpendingPatternAnalysis';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 // 카드 스타일 상수 정의
 const CARD_STYLES = {
@@ -89,115 +88,111 @@ export default function StatisticsPage() {
   if (!mounted) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <PageTitle
-        title="거래통계"
-        description="거래 내역을 분석하고 통계를 확인합니다."
-        icon={MdQueryStats}
-        iconColor="text-blue-500"
-      />
+    <ProtectedRoute>
+      <div className="container mx-auto px-4 py-8">
+        <PageTitle
+          title="거래통계"
+          description="거래 내역을 분석하고 통계를 확인합니다."
+          icon={MdQueryStats}
+          iconColor="text-blue-500"
+        />
 
-      {/* 재무현황 섹션 */}
-      <section className="mt-12">
-        <div className="mb-8 flex items-center gap-3">
-          <MdAccountBalance className="h-6 w-6 text-blue-400" />
-          <h2 className="text-xl font-semibold text-gray-100">재무현황</h2>
-        </div>
-        <div className="grid grid-cols-3 gap-6">
-          {/* 총수입 */}
-          <div className={CARD_STYLES.income.wrapper}>
-            <div className={CARD_STYLES.income.iconWrapper}>
-              <FaMoneyBillWave className={CARD_STYLES.income.icon} />
-            </div>
-            <div className="flex flex-col">
-              <span className={CARD_STYLES.income.label}>총수입</span>
-              <div className={CARD_STYLES.income.amount}>
-                <span>{formatAmount(financials.totalIncome)}</span>
-                <span className="ml-1">원</span>
+        {/* 재무현황 섹션 */}
+        <section className="mt-12">
+          <div className="mb-8 flex items-center gap-3">
+            <MdAccountBalance className="h-6 w-6 text-blue-400" />
+            <h2 className="text-xl font-semibold text-gray-100">재무현황</h2>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            {/* 총수입 */}
+            <div className={CARD_STYLES.income.wrapper}>
+              <div className={CARD_STYLES.income.iconWrapper}>
+                <FaMoneyBillWave className={CARD_STYLES.income.icon} />
               </div>
-              <div className={CARD_STYLES.income.description}>
-                전체 수입 금액
+              <div className="flex flex-col">
+                <span className={CARD_STYLES.income.label}>총수입</span>
+                <div className={CARD_STYLES.income.amount}>
+                  <span>{formatAmount(financials.totalIncome)}</span>
+                  <span className="ml-1">원</span>
+                </div>
+                <div className={CARD_STYLES.income.description}>
+                  전체 수입 금액
+                </div>
+              </div>
+            </div>
+
+            {/* 총지출 */}
+            <div className={CARD_STYLES.expense.wrapper}>
+              <div className={CARD_STYLES.expense.iconWrapper}>
+                <FaRegMoneyBillAlt className={CARD_STYLES.expense.icon} />
+              </div>
+              <div className="flex flex-col">
+                <span className={CARD_STYLES.expense.label}>총지출</span>
+                <div className={CARD_STYLES.expense.amount}>
+                  <span>{formatAmount(financials.totalExpense)}</span>
+                  <span className="ml-1">원</span>
+                </div>
+                <div className={CARD_STYLES.expense.description}>
+                  전체 지출 금액
+                </div>
+              </div>
+            </div>
+
+            {/* 현잔액 */}
+            <div className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.wrapper : CARD_STYLES.balance.negative.wrapper}>
+              <div className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.iconWrapper : CARD_STYLES.balance.negative.iconWrapper}>
+                <FaChartLine className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.icon : CARD_STYLES.balance.negative.icon} />
+              </div>
+              <div className="flex flex-col">
+                <span className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.label : CARD_STYLES.balance.negative.label}>현잔액</span>
+                <div className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.amount : CARD_STYLES.balance.negative.amount}>
+                  <span>{financials.currentBalance < 0 && '-'}{formatAmount(Math.abs(financials.currentBalance))}</span>
+                  <span className="ml-1">원</span>
+                </div>
+                <div className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.description : CARD_STYLES.balance.negative.description}>
+                  현재 보유 잔액
+                </div>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* 총지출 */}
-          <div className={CARD_STYLES.expense.wrapper}>
-            <div className={CARD_STYLES.expense.iconWrapper}>
-              <FaRegMoneyBillAlt className={CARD_STYLES.expense.icon} />
-            </div>
-            <div className="flex flex-col">
-              <span className={CARD_STYLES.expense.label}>총지출</span>
-              <div className={CARD_STYLES.expense.amount}>
-                <span>{formatAmount(financials.totalExpense)}</span>
-                <span className="ml-1">원</span>
+        {/* 구분선 */}
+        <div className="w-full border-t border-white/20 my-8" />
+
+        {/* 분석 섹션 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* 상세통계분석 */}
+          <div className="bg-gray-800/50 rounded-xl p-6 border border-white/10">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-500/10">
+                <BiAnalyse className="w-6 h-6 text-indigo-400" />
               </div>
-              <div className={CARD_STYLES.expense.description}>
-                전체 지출 금액
+              <h3 className="text-xl font-semibold text-white">상세통계분석</h3>
+            </div>
+            <div className="space-y-8">
+              <HierarchicalAnalysis />
+            </div>
+          </div>
+
+          {/* 기간별통계분석 */}
+          <div className="bg-gray-800/50 rounded-xl p-6 border border-white/10">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/10">
+                <MdOutlineQueryStats className="w-6 h-6 text-amber-400" />
               </div>
+              <h3 className="text-xl font-semibold text-white">기간별통계분석</h3>
             </div>
-          </div>
-
-          {/* 현잔액 */}
-          <div className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.wrapper : CARD_STYLES.balance.negative.wrapper}>
-            <div className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.iconWrapper : CARD_STYLES.balance.negative.iconWrapper}>
-              <FaChartLine className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.icon : CARD_STYLES.balance.negative.icon} />
+            <div className="space-y-6">
+              <PeriodicalAnalysis />
+              {/* 구분선 */}
+              <div className="h-[1px] bg-white/20" />
+              {/* 카테고리별 필터분석 */}
+              <CategoryFilterAnalysis />
             </div>
-            <div className="flex flex-col">
-              <span className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.label : CARD_STYLES.balance.negative.label}>현잔액</span>
-              <div className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.amount : CARD_STYLES.balance.negative.amount}>
-                <span>{financials.currentBalance < 0 && '-'}{formatAmount(Math.abs(financials.currentBalance))}</span>
-                <span className="ml-1">원</span>
-              </div>
-              <div className={financials.currentBalance >= 0 ? CARD_STYLES.balance.positive.description : CARD_STYLES.balance.negative.description}>
-                현재 보유 잔액
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 구분선 */}
-      <div className="w-full border-t border-white/20 my-8" />
-
-      {/* 분석 섹션 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* 상세통계분석 */}
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-white/10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-500/10">
-              <BiAnalyse className="w-6 h-6 text-indigo-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-white">상세통계분석</h3>
-          </div>
-          <div className="space-y-8">
-            <HierarchicalAnalysis />
-            <hr className="border-gray-800" />
-            <SpendingPatternAnalysis />
-          </div>
-        </div>
-
-        {/* 기간별통계분석 */}
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-white/10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/10">
-              <MdOutlineQueryStats className="w-6 h-6 text-amber-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-white">기간별통계분석</h3>
-          </div>
-          <div className="space-y-6">
-            <PeriodicalAnalysis />
-            {/* 구분선 */}
-            <div className="h-[1px] bg-white/20" />
-            {/* 카테고리별 필터분석 */}
-            <CategoryFilterAnalysis />
-            {/* 구분선 */}
-            <div className="h-[1px] bg-white/20" />
-            {/* 지출패턴분석-1 */}
-            <SpendingPatternAnalysis />
           </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 } 

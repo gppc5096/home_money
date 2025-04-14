@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { IoAddCircle } from "react-icons/io5";
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 interface FormData {
   date: string;
@@ -232,132 +233,134 @@ export default function InputPage() {
   };
 
   return (
-    <div className="flex flex-col gap-10 p-8">
-      <PageTitle
-        title="거래입력"
-        description="수입과 지출 내역을 입력하고 관리하세요."
-        icon={IoWallet}
-        iconColor="text-green-200"
-      />
+    <ProtectedRoute>
+      <div className="flex flex-col gap-10 p-8">
+        <PageTitle
+          title="거래입력"
+          description="수입과 지출 내역을 입력하고 관리하세요."
+          icon={IoWallet}
+          iconColor="text-green-200"
+        />
 
-      {/* 신규거래입력-1 섹션 */}
-      <section className="bg-gray-900 rounded-lg p-6">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <IoAddCircle className="h-6 w-6 text-blue-200" />
-            <h2 className="text-xl font-semibold text-white">신규 거래 입력</h2>
-          </div>
-          <div className="space-y-6">
-            {/* 1단: 날짜, 유형, 금액 */}
-            <div className="grid grid-cols-3 gap-4">
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full"
-              />
-              <select
-                name="유형"
-                value={formData.유형}
-                onChange={handleChange}
-                className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full"
-              >
-                <option value="수입">수입</option>
-                <option value="지출">지출</option>
-              </select>
-              <input
-                type="text"
-                name="amount"
-                placeholder="금액"
-                value={formData.amount}
-                onChange={handleChange}
-                className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full text-right"
-              />
+        {/* 신규거래입력-1 섹션 */}
+        <section className="bg-gray-900 rounded-lg p-6">
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <IoAddCircle className="h-6 w-6 text-blue-200" />
+              <h2 className="text-xl font-semibold text-white">신규 거래 입력</h2>
             </div>
+            <div className="space-y-6">
+              {/* 1단: 날짜, 유형, 금액 */}
+              <div className="grid grid-cols-3 gap-4">
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full"
+                />
+                <select
+                  name="유형"
+                  value={formData.유형}
+                  onChange={handleChange}
+                  className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full"
+                >
+                  <option value="수입">수입</option>
+                  <option value="지출">지출</option>
+                </select>
+                <input
+                  type="text"
+                  name="amount"
+                  placeholder="금액"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full text-right"
+                />
+              </div>
 
-            {/* 2단: 관, 항, 목 */}
-            <div className="grid grid-cols-3 gap-4">
-              <select
-                name="관"
-                value={formData.관}
-                onChange={handleChange}
-                className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full"
-              >
-                <option value="">관 선택</option>
-                {관목록.map(관 => (
-                  <option key={관} value={관}>{관}</option>
-                ))}
-              </select>
-              <select
-                name="항"
-                value={formData.항}
-                onChange={handleChange}
-                className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full"
-              >
-                <option value="">항 선택</option>
-                {항목록.map(항 => (
-                  <option key={항} value={항}>{항}</option>
-                ))}
-              </select>
-              <select
-                name="목"
-                value={formData.목}
-                onChange={handleChange}
-                className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full"
-              >
-                <option value="">목 선택</option>
-                {목목록.map(목 => (
-                  <option key={목} value={목}>{목}</option>
-                ))}
-              </select>
+              {/* 2단: 관, 항, 목 */}
+              <div className="grid grid-cols-3 gap-4">
+                <select
+                  name="관"
+                  value={formData.관}
+                  onChange={handleChange}
+                  className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full"
+                >
+                  <option value="">관 선택</option>
+                  {관목록.map(관 => (
+                    <option key={관} value={관}>{관}</option>
+                  ))}
+                </select>
+                <select
+                  name="항"
+                  value={formData.항}
+                  onChange={handleChange}
+                  className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full"
+                >
+                  <option value="">항 선택</option>
+                  {항목록.map(항 => (
+                    <option key={항} value={항}>{항}</option>
+                  ))}
+                </select>
+                <select
+                  name="목"
+                  value={formData.목}
+                  onChange={handleChange}
+                  className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 w-full"
+                >
+                  <option value="">목 선택</option>
+                  {목목록.map(목 => (
+                    <option key={목} value={목}>{목}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 3단: 메모, 거래추가 버튼 */}
+              <div className="grid grid-cols-4 gap-4">
+                <input
+                  type="text"
+                  name="memo"
+                  placeholder="메모"
+                  value={formData.memo}
+                  onChange={handleChange}
+                  className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 col-span-3"
+                />
+                <button
+                  onClick={handleAddTransaction}
+                  className="bg-purple-600 hover:bg-purple-700 text-white rounded-[10px] p-2 transition-colors duration-200"
+                >
+                  거래추가
+                </button>
+              </div>
+              {Object.entries(errors).map(([field, message]) => (
+                <p key={field} className="text-red-500 text-sm">{message}</p>
+              ))}
             </div>
+          </div>
 
-            {/* 3단: 메모, 거래추가 버튼 */}
-            <div className="grid grid-cols-4 gap-4">
-              <input
-                type="text"
-                name="memo"
-                placeholder="메모"
-                value={formData.memo}
-                onChange={handleChange}
-                className="bg-gray-700 text-white border-2 border-gray-400 rounded-[10px] p-2 col-span-3"
-              />
-              <button
-                onClick={handleAddTransaction}
-                className="bg-purple-600 hover:bg-purple-700 text-white rounded-[10px] p-2 transition-colors duration-200"
-              >
-                거래추가
-              </button>
+          <hr className="border-t-2 border-gray-400 my-8 rounded-[10px]" />
+
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <FaListAlt className="h-6 w-6 text-yellow-200" />
+              <h2 className="text-xl font-semibold text-white">거래 목록 현황</h2>
+              <p className="text-gray-400 text-sm ml-2">최근 거래내역을 확인하고 관리할 수 있습니다.</p>
             </div>
-            {Object.entries(errors).map(([field, message]) => (
-              <p key={field} className="text-red-500 text-sm">{message}</p>
-            ))}
+            <TransactionList />
           </div>
-        </div>
+        </section>
 
-        <hr className="border-t-2 border-gray-400 my-8 rounded-[10px]" />
-
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <FaListAlt className="h-6 w-6 text-yellow-200" />
-            <h2 className="text-xl font-semibold text-white">거래 목록 현황</h2>
-            <p className="text-gray-400 text-sm ml-2">최근 거래내역을 확인하고 관리할 수 있습니다.</p>
-          </div>
-          <TransactionList />
-        </div>
-      </section>
-
-      {/* 위로가기 버튼 */}
-      {showScrollTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-8 bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 ease-in-out"
-          aria-label="위로 가기"
-        >
-          <FaArrowUp className="h-5 w-5" />
-        </button>
-      )}
-    </div>
+        {/* 위로가기 버튼 */}
+        {showScrollTop && (
+          <button
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 ease-in-out"
+            aria-label="위로 가기"
+          >
+            <FaArrowUp className="h-5 w-5" />
+          </button>
+        )}
+      </div>
+    </ProtectedRoute>
   );
 } 

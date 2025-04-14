@@ -24,13 +24,11 @@ const STORAGE_KEY = 'categories';
 export const loadFromStorage = async (): Promise<Category[]> => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      return DEFAULT_CATEGORIES;
-    }
+    if (!stored) return [];
     return JSON.parse(stored);
   } catch (error) {
-    console.error('카테고리 데이터 로드 실패:', error);
-    return DEFAULT_CATEGORIES;
+    console.error('카테고리 로드 실패:', error);
+    return [];
   }
 };
 
@@ -39,7 +37,7 @@ export const saveToStorage = (categories: Category[]) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
   } catch (error) {
-    console.error('카테고리 데이터 저장 실패:', error);
+    console.error('카테고리 저장 실패:', error);
   }
 };
 
@@ -106,7 +104,24 @@ export function groupCategories(categories: Category[], selectedType: "수입" |
 
 export const exportCategories = (categories: Category[]) => {
   try {
-    const csvContent = convertCategoriesToCSV(categories);
+    // CSV 헤더 생성
+    const headers = ['유형', '관', '항', '목'];
+    
+    // 데이터를 CSV 형식으로 변환
+    const csvData = categories.map(category => [
+      category.유형,
+      category.관,
+      category.항,
+      category.목
+    ]);
+
+    // 헤더와 데이터 결합
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    // Blob 생성 및 다운로드
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -123,10 +138,9 @@ export const exportCategories = (categories: Category[]) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    return true;
   } catch (error) {
-    console.error('Error exporting categories:', error);
-    return false;
+    console.error('카테고리 내보내기 실패:', error);
+    throw new Error('카테고리 내보내기에 실패했습니다.');
   }
 };
 
@@ -148,45 +162,38 @@ function isValidCategory(category: UnknownCategory): category is Category {
   );
 }
 
-export function importCategories(file: File): Promise<Category[]> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const csvText = e.target?.result as string;
-        const lines = csvText.split('\n').map(line => line.trim()).filter(Boolean);
-        
-        // 헤더 확인 (첫 번째 줄)
-        const header = lines[0].toLowerCase();
-        if (!header.includes('유형') || !header.includes('관') || !header.includes('항') || !header.includes('목')) {
-          throw new Error('올바른 CSV 형식이 아닙니다. (유형,관,항,목 컬럼이 필요합니다)');
-        }
+export const importCategories = async (file: File): Promise<Category[]> => {
+  try {
+    const text = await file.text();
+    const rows = text.split('\n');
+    const headers = rows[0].split(',');
 
-        // 데이터 변환 (헤더 제외)
-        const categories = lines.slice(1).map(line => {
-          const [유형, 관, 항, 목] = line.split(',').map(val => val.trim());
-          
-          if (!유형 || !관 || !항 || !목) {
-            throw new Error('누락된 데이터가 있습니다.');
-          }
-          
-          if (유형 !== '수입' && 유형 !== '지출') {
-            throw new Error('유형은 "수입" 또는 "지출"이어야 합니다.');
-          }
+    const importedData = rows.slice(1)
+      .filter(row => row.trim() !== '')
+      .map(row => {
+        const values = row.split(',');
+        return {
+          유형: values[0] as "수입" | "지출",
+          관: values[1],
+          항: values[2],
+          목: values[3]
+        };
+      })
+      .filter(category => 
+        category.유형 && 
+        category.관 && 
+        category.항 && 
+        category.목 &&
+        (category.유형 === "수입" || category.유형 === "지출")
+      );
 
-          const category = { 유형: 유형 as "수입" | "지출", 관, 항, 목 };
-          if (!isValidCategory(category)) {
-            throw new Error('유효하지 않은 카테고리 데이터입니다.');
-          }
-          return category;
-        });
+    if (importedData.length === 0) {
+      throw new Error('유효한 카테고리가 없습니다.');
+    }
 
-        resolve(categories);
-      } catch (err) {
-        reject(err instanceof Error ? err : new Error('파일을 읽는 중 오류가 발생했습니다.'));
-      }
-    };
-    reader.onerror = () => reject(new Error('파일을 읽는 중 오류가 발생했습니다.'));
-    reader.readAsText(file, 'utf-8');
-  });
-} 
+    return importedData;
+  } catch (error) {
+    console.error('카테고리 가져오기 실패:', error);
+    throw new Error('카테고리 가져오기에 실패했습니다.');
+  }
+}; 

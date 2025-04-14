@@ -23,6 +23,7 @@ interface CategoryState {
   setIsModalOpen: (isOpen: boolean) => void;
   setEditingCategory: (category: Category | null) => void;
   loadCategories: () => Promise<void>;
+  resetCategories: () => void;
 }
 
 // 카테고리 비교 함수
@@ -101,4 +102,9 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
   setSelectedType: (type) => set({ selectedType: type }),
   setIsModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
   setEditingCategory: (category) => set({ editingCategory: category }),
+
+  resetCategories: () => {
+    set({ categories: [] });
+    localStorage.removeItem('categories');
+  }
 })); 

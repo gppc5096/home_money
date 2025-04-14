@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface Transaction {
   id: string;
@@ -17,6 +18,7 @@ interface TransactionState {
   addTransaction: (transaction: Transaction) => void;
   updateTransaction: (transaction: Transaction) => void;
   deleteTransaction: (transaction: Transaction) => void;
+  resetTransactions: () => void;
 }
 
 const STORAGE_KEY = 'transactions';
@@ -40,36 +42,45 @@ const saveToStorage = (transactions: Transaction[]) => {
   }
 };
 
-export const useTransactionStore = create<TransactionState>((set, get) => ({
-  transactions: loadFromStorage(),
+export const useTransactionStore = create<TransactionState>()(
+  persist(
+    (set, get) => ({
+      transactions: [],
 
-  setTransactions: (transactions) => {
-    set({ transactions });
-    saveToStorage(transactions);
-  },
+      setTransactions: (transactions) => {
+        set({ transactions });
+      },
 
-  addTransaction: (transaction) => {
-    const { transactions } = get();
-    const newTransactions = [...transactions, transaction];
-    set({ transactions: newTransactions });
-    saveToStorage(newTransactions);
-  },
+      addTransaction: (transaction) => {
+        const { transactions } = get();
+        set({ transactions: [...transactions, transaction] });
+      },
 
-  updateTransaction: (updatedTransaction) => {
-    const { transactions } = get();
-    const newTransactions = transactions.map(transaction =>
-      transaction.id === updatedTransaction.id ? updatedTransaction : transaction
-    );
-    set({ transactions: newTransactions });
-    saveToStorage(newTransactions);
-  },
+      updateTransaction: (updatedTransaction) => {
+        const { transactions } = get();
+        set({
+          transactions: transactions.map(transaction =>
+            transaction.id === updatedTransaction.id ? updatedTransaction : transaction
+          )
+        });
+      },
 
-  deleteTransaction: (transactionToDelete) => {
-    const { transactions } = get();
-    const newTransactions = transactions.filter(
-      transaction => transaction.id !== transactionToDelete.id
-    );
-    set({ transactions: newTransactions });
-    saveToStorage(newTransactions);
-  }
-})); 
+      deleteTransaction: (transactionToDelete) => {
+        const { transactions } = get();
+        set({
+          transactions: transactions.filter(
+            transaction => transaction.id !== transactionToDelete.id
+          )
+        });
+      },
+
+      resetTransactions: () => {
+        set({ transactions: [] });
+      }
+    }),
+    {
+      name: 'transaction-storage',
+      getStorage: () => localStorage,
+    }
+  )
+); 

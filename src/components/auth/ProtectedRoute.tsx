@@ -4,17 +4,23 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 
-export default function Home() {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
+
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
-      return;
     }
-    router.push('/input');
   }, [isAuthenticated, router]);
 
-  return null;
-}
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return <>{children}</>;
+} 

@@ -11,12 +11,11 @@ import { FaChartBar, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import { BiAnalyse } from 'react-icons/bi';
 import { MdOutlineQueryStats, MdTimeline } from 'react-icons/md';
 import { HierarchicalAnalysis } from '@/components/statistics/HierarchicalAnalysis';
-import { SpendingInsights } from '@/components/statistics/SpendingInsights';
 import { HeatmapCalendar } from '@/components/statistics/HeatmapCalendar';
 import { PeriodicalAnalysis } from '@/components/statistics/PeriodicalAnalysis';
-import { CategoryAnalysis } from '@/components/statistics/CategoryAnalysis';
 import { PeriodFilterAnalysis } from '@/components/statistics/PeriodFilterAnalysis';
 import { CategoryFilterAnalysis } from '@/components/statistics/CategoryFilterAnalysis';
+import { SpendingPatternAnalysis } from '@/components/statistics/SpendingPatternAnalysis';
 
 // 카드 스타일 상수 정의
 const CARD_STYLES = {
@@ -171,9 +170,10 @@ export default function StatisticsPage() {
             </div>
             <h3 className="text-xl font-semibold text-white">상세통계분석</h3>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-8">
             <HierarchicalAnalysis />
-            <SpendingInsights />
+            <hr className="border-gray-800" />
+            <SpendingPatternAnalysis />
           </div>
         </div>
 
@@ -191,6 +191,10 @@ export default function StatisticsPage() {
             <div className="h-[1px] bg-white/20" />
             {/* 카테고리별 필터분석 */}
             <CategoryFilterAnalysis />
+            {/* 구분선 */}
+            <div className="h-[1px] bg-white/20" />
+            {/* 지출패턴분석-1 */}
+            <SpendingPatternAnalysis />
           </div>
         </div>
       </div>

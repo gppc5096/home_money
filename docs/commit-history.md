@@ -1,6 +1,19 @@
 # 커밋 히스토리
 
-### [10] 커밋: feat: Install Git Hook for automatic commit-history.md updates
+### [15] 커밋: refactor: SpendingInsights를 SpendingPatternAnalysis로 대체하고 통계 페이지 구조 개선
+- 📅 날짜: 2025-04-14
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: ae5ffba
+- 📝 변경된 파일:
+  - docs/commit-history.md
+  - src/app/statistics/page.tsx
+  - src/components/statistics/SpendingInsights.tsx
+  - src/components/statistics/SpendingPatternAnalysis.tsx
+- 💡 주요 변경사항:
+    - refactor: SpendingInsights를 SpendingPatternAnalysis로 대체하고 통계 페이지 구조 개선
+
+
+### [14] 커밋: feat: Install Git Hook for automatic commit-history.md updates
 - 📅 날짜: 2025-04-14
 - 👤 작성자: Jongchoon Na
 - 🔍 커밋 해시: cd61e41

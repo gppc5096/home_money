@@ -1,5 +1,15 @@
 # 커밋 히스토리
 
+### [22] 커밋: feat: Reorganize settings page sections and improve UI - Reorder sections (Category/Data/Password Management, Data Init) - UI improvements (spacing, buttons, sections, icons)
+- 📅 날짜: 2025-04-14
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: fb6da95
+- 📝 변경된 파일:
+  - src/app/settings/page.tsx
+- 💡 주요 변경사항:
+    - feat: Reorganize settings page sections and improve UI - Reorder sections (Category/Data/Password Management, Data Init) - UI improvements (spacing, buttons, sections, icons)
+
+
 ### [21] 커밋: refactor: 네비게이션 바에서 로그인 메뉴 제거
 - 📅 날짜: 2025-04-14
 - 👤 작성자: Jongchoon Na

@@ -4,15 +4,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MdSettings } from "react-icons/md";
 import PageTitle from "@/components/common/PageTitle";
 import CategoryManager from "@/components/category/CategoryManager";
-import { IoSettings } from "react-icons/io5";
+import { IoSettingsSharp } from "react-icons/io5";
 import { MdDataUsage, MdDelete, MdWarning } from "react-icons/md";
-import { FaFileExport, FaFileImport, FaArrowUp } from "react-icons/fa";
+import { FaFileExport, FaFileImport, FaArrowUp, FaTrash } from "react-icons/fa";
 import { useCategoryStore } from "@/store/categoryStore";
 import { useTransactionStore } from "@/store/transactionStore";
 import { exportCategories, importCategories } from "@/utils/categoryUtils";
 import { toast } from 'react-hot-toast';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { PasswordManager } from '@/components/settings/PasswordManager';
+import { format } from 'date-fns';
 
 export default function SettingsPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -21,6 +22,8 @@ export default function SettingsPage() {
   const categoryFileInputRef = useRef<HTMLInputElement>(null);
   const transactionFileInputRef = useRef<HTMLInputElement>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   // 스크롤 이벤트 핸들링
   useEffect(() => {
@@ -153,137 +156,154 @@ export default function SettingsPage() {
     }
   };
 
+  // CSV 파일 내보내기 함수
+  const handleExport = (data: any[], type: string) => {
+    try {
+      setIsExporting(true);
+      const headers = Object.keys(data[0]).join(',');
+      const rows = data.map(item => Object.values(item).join(','));
+      const csvContent = [headers, ...rows].join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const currentDate = format(new Date(), 'yyyy. M. d');
+      link.href = URL.createObjectURL(blob);
+      link.download = `2-${type === 'transactions' ? '가계부_거래내역' : '카테고리_내보내기'}_${currentDate}.csv`;
+      link.click();
+      toast.success('파일이 성공적으로 내보내졌습니다.');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('파일 내보내기 중 오류가 발생했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // CSV 파일 가져오기 함수
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsImporting(true);
+      const text = await file.text();
+      const [headers, ...rows] = text.split('\n');
+      const data = rows.map(row => {
+        const values = row.split(',');
+        return headers.split(',').reduce((obj: any, header, index) => {
+          obj[header] = values[index];
+          return obj;
+        }, {});
+      });
+
+      if (type === 'transactions') {
+        setTransactions(data);
+      } else {
+        setCategories(data);
+      }
+      
+      toast.success('파일이 성공적으로 가져와졌습니다.');
+      event.target.value = ''; // 파일 입력 초기화
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('파일 가져오기 중 오류가 발생했습니다.');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <ProtectedRoute>
-      <div className="space-y-8">
-        <PasswordManager />
+      <div className="space-y-10">
+        <PageTitle 
+          title="거래설정" 
+          description="거래 관련 설정을 관리합니다."
+          icon={IoSettingsSharp}
+        />
+
+        {/* 1단: 카테고리 관리 */}
         <CategoryManager />
 
-        {/* 데이터 관리 섹션 */}
+        {/* 2단: 데이터 관리 */}
         <section>
-          <div className="mb-6 flex items-center gap-3">
-            <MdDataUsage className="h-6 w-6 text-green-200" />
-            <h2 className="text-xl font-semibold text-white">데이터 관리</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-3">
+            <FaFileExport className="h-6 w-6 text-blue-500" />
+            데이터 관리
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 거래내역 관리 */}
-            <div className="bg-gray-800 rounded-lg p-8">
+            <div className="bg-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-medium text-white mb-4">거래내역 관리</h3>
-              <div className="flex justify-between items-center">
-                <button 
-                  onClick={exportTransactionsToCSV}
-                  className="flex items-center gap-2 text-emerald-300 hover:text-emerald-200 transition-colors px-4 py-2"
+              <div className="space-y-4">
+                <button
+                  onClick={() => handleExport(transactions, 'transactions')}
+                  disabled={isExporting}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 >
-                  <FaFileExport className="h-5 w-5" />
-                  <span>내보내기</span>
+                  {isExporting ? '내보내는 중...' : '거래내역 내보내기'}
                 </button>
-                <input
-                  type="file"
-                  ref={transactionFileInputRef}
-                  onChange={importTransactionsFromCSV}
-                  className="hidden"
-                  accept=".csv"
-                />
-                <button 
-                  onClick={() => transactionFileInputRef.current?.click()}
-                  className="flex items-center gap-2 text-sky-300 hover:text-sky-200 transition-colors px-4 py-2"
-                >
-                  <FaFileImport className="h-5 w-5" />
-                  <span>가져오기</span>
-                </button>
+                <div>
+                  <label className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 cursor-pointer flex items-center justify-center">
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => handleImport(e, 'transactions')}
+                      disabled={isImporting}
+                      className="hidden"
+                    />
+                    {isImporting ? '가져오는 중...' : '거래내역 가져오기'}
+                  </label>
+                </div>
               </div>
             </div>
-            
+
             {/* 카테고리 관리 */}
-            <div className="bg-gray-800 rounded-lg p-8">
+            <div className="bg-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-medium text-white mb-4">카테고리 관리</h3>
-              <div className="flex justify-between items-center">
-                <button 
-                  onClick={() => exportCategories(categories)}
-                  className="flex items-center gap-2 text-emerald-300 hover:text-emerald-200 transition-colors px-4 py-2"
+              <div className="space-y-4">
+                <button
+                  onClick={() => handleExport(categories, 'categories')}
+                  disabled={isExporting}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 >
-                  <FaFileExport className="h-5 w-5" />
-                  <span>내보내기</span>
+                  {isExporting ? '내보내는 중...' : '카테고리 내보내기'}
                 </button>
-                <input
-                  type="file"
-                  ref={categoryFileInputRef}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      try {
-                        const importedCategories = await importCategories(file);
-                        setCategories(importedCategories);
-                        toast.success('카테고리를 성공적으로 가져왔습니다.');
-                      } catch (error) {
-                        toast.error(error instanceof Error ? error.message : '카테고리를 가져오는 중 오류가 발생했습니다.');
-                      }
-                      e.target.value = '';
-                    }
-                  }}
-                  className="hidden"
-                  accept=".csv"
-                />
-                <button 
-                  onClick={() => categoryFileInputRef.current?.click()}
-                  className="flex items-center gap-2 text-sky-300 hover:text-sky-200 transition-colors px-4 py-2"
-                >
-                  <FaFileImport className="h-5 w-5" />
-                  <span>가져오기</span>
-                </button>
+                <div>
+                  <label className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 cursor-pointer flex items-center justify-center">
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => handleImport(e, 'categories')}
+                      disabled={isImporting}
+                      className="hidden"
+                    />
+                    {isImporting ? '가져오는 중...' : '카테고리 가져오기'}
+                  </label>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 데이터 초기화 섹션 */}
+        {/* 3단: 비밀번호 관리 */}
+        <PasswordManager />
+
+        {/* 4단: 데이터 초기화 */}
         <section>
-          <div className="mb-6 flex items-center gap-3">
-            <MdDelete className="h-6 w-6 text-red-500" />
-            <h2 className="text-xl font-semibold text-white">데이터 초기화</h2>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-6 border border-red-500/50 hover:border-red-500 transition-colors">
-            <div className="flex items-start gap-3">
-              <MdWarning className="h-5 w-5 text-red-500 flex-shrink-0 mt-1" />
-              <div className="flex-1">
-                <h3 className="text-base font-medium text-red-400 mb-2">
-                  모든 데이터가 영구적으로 삭제됩니다
-                </h3>
-                <div className="text-sm text-gray-400 mb-4 grid grid-cols-2 gap-2">
-                  <span>• 카테고리 데이터</span>
-                  <span>• 거래 내역</span>
-                </div>
-                {!showResetConfirm ? (
-                  <button
-                    onClick={() => setShowResetConfirm(true)}
-                    className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <MdDelete className="h-4 w-4" />
-                    <span>데이터 초기화</span>
-                  </button>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-red-400 font-medium">
-                      정말로 모든 데이터를 초기화하시겠습니까?
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleDataReset}
-                        className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm transition-colors"
-                      >
-                        확인
-                      </button>
-                      <button
-                        onClick={() => setShowResetConfirm(false)}
-                        className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-md text-sm transition-colors"
-                      >
-                        취소
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+          <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-3">
+            <FaTrash className="h-6 w-6 text-red-500" />
+            데이터 초기화
+          </h2>
+          <div className="bg-gray-800 rounded-lg p-6">
+            <p className="text-gray-300 mb-4">
+              모든 거래내역과 카테고리 데이터를 초기화합니다. 이 작업은 되돌릴 수 없습니다.
+            </p>
+            <button
+              onClick={handleDataReset}
+              className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              데이터 초기화
+            </button>
           </div>
         </section>
       </div>

@@ -104,29 +104,23 @@ export function groupCategories(categories: Category[], selectedType: "수입" |
     }, {});
 }
 
-export function exportCategories(categories: Category[]): void {
-  // CSV 헤더
-  const csvHeader = "유형,관,항,목\n";
-  
-  // 카테고리 데이터를 CSV 형식으로 변환
-  const csvData = categories.map(cat => 
-    `${cat.유형},${cat.관},${cat.항},${cat.목}`
-  ).join('\n');
-
-  // 최종 CSV 문자열 생성
-  const csvString = csvHeader + csvData;
-
-  // CSV 파일 다운로드
-  const blob = new Blob(['\ufeff' + csvString], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = '카테고리_내보내기.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+export const exportCategories = (categories: Category[]) => {
+  try {
+    const csvContent = convertCategoriesToCSV(categories);
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `카테고리_내보내기_${new Date().toLocaleDateString()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return true;
+  } catch (error) {
+    console.error('Error exporting categories:', error);
+    return false;
+  }
+};
 
 interface UnknownCategory {
   유형: unknown;

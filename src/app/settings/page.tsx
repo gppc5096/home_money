@@ -65,7 +65,7 @@ export default function SettingsPage() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `가계부_거래내역_${new Date().toLocaleDateString()}.csv`;
+      link.download = `거래내역_내보내기_${new Date().toLocaleDateString()}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

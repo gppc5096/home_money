@@ -1,5 +1,16 @@
 # 커밋 히스토리
 
+### [18] 커밋: refactor: 내보내기 파일명 형식 통일
+- 📅 날짜: 2025-04-14
+- 👤 작성자: Jongchoon Na
+- 🔍 커밋 해시: 8670e51
+- 📝 변경된 파일:
+  - src/app/settings/page.tsx
+  - src/utils/categoryUtils.ts
+- 💡 주요 변경사항:
+    - refactor: 내보내기 파일명 형식 통일
+
+
 ### [17] 커밋: feat: 거래내역 CSV 내보내기/가져오기 기능 구현
 - 📅 날짜: 2025-04-14
 - 👤 작성자: Jongchoon Na
